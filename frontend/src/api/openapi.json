@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "AuditIt API",
+    "title": "AuditItIn API",
     "description": "Graph-based financial audit and causal analysis platform API",
     "version": "0.1.0"
   },

@@ -1,6 +1,6 @@
 import { createGetUrl } from 'fumadocs-core/source';
 
-export const appName = 'AuditIt';
+export const appName = 'AuditItIn';
 export const docsRoute = '/docs';
 export const docsImageRoute = '/og/docs';
 export const docsContentRoute = '/llms.mdx/docs';
@@ -8,7 +8,7 @@ export const docsContentRoute = '/llms.mdx/docs';
 // GitHub repository info
 export const gitConfig = {
   user: 'avinashankur',
-  repo: 'audit-it',
+  repo: 'audit-it-in',
   branch: 'main',
 };
 

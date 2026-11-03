@@ -28,8 +28,8 @@ The app works without an API key in **Offline Grounded** mode. Gemini, OpenAI, a
 ### 1. Install
 
 ```bash
-git clone https://github.com/avinashankur/audit-it.git
-cd audit-it
+git clone https://github.com/avinashankur/audit-it-in.git
+cd audit-it-in
 
 # Root development runner
 npm install

@@ -1,4 +1,4 @@
-"""AuditIt FastAPI application main entrypoint."""
+"""AuditItIn FastAPI application main entrypoint."""
 
 import os
 from fastapi import FastAPI
@@ -10,7 +10,7 @@ from src.api.routes import documents, graph, health, query, samples
 def create_app() -> FastAPI:
     """Factory creating configured FastAPI instance with all routes and CORS."""
     app = FastAPI(
-        title="AuditIt API",
+        title="AuditItIn API",
         description="Graph-based financial audit and causal analysis platform API",
         version="0.1.0",
         docs_url="/docs",

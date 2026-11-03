@@ -15,7 +15,7 @@ from src.retrieval.vector_store import VectorStore
 from src.ui.state import add_message, clear_chat, init_session_state
 
 st.set_page_config(
-    page_title="AuditIt: Causal Financial Audit",
+    page_title="AuditItIn: Causal Financial Audit",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",

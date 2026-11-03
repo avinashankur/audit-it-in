@@ -48,7 +48,7 @@ export function AppSidebar() {
     <Sidebar collapsible="offcanvas">
       <SidebarHeader className="px-6 pt-7 pb-0">
         <div className="font-serif text-2xl leading-none">
-          Audit<span className="italic text-brand">It</span>
+          Audit<span className="italic text-brand">ItIn</span>
         </div>
       </SidebarHeader>
 
