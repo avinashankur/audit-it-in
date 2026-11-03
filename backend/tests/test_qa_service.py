@@ -33,7 +33,7 @@ def test_qa_service_citation_source_filename():
             text="Revenue increased to $1,000M.",
             char_count=30,
             token_estimate=8,
-            metadata={"filename": "DrinkPAK_Report.pdf"},
+            metadata={"filename": "Northwind_Report.pdf"},
         )
     ])
 
@@ -47,7 +47,7 @@ def test_qa_service_citation_source_filename():
         assert not hasattr(c, "source_document")
         # Simulating app.py's citation extraction
         source = c.source_filename or f"Page {c.page_number}"
-        assert source in ("DrinkPAK_Report.pdf", "Knowledge Graph")
+        assert source in ("Northwind_Report.pdf", "Knowledge Graph")
 
 
 def test_causal_citations_use_actual_report_pages_and_evidence():
@@ -156,7 +156,7 @@ def test_offline_answer_includes_metric_values_and_citations():
     ingest_result = IngestionResult(
         metadata=DocumentMetadata(
             doc_id="doc_rev_99",
-            filename="DrinkPAK_Annual_Report.pdf",
+            filename="Northwind_Annual_Report.pdf",
             file_hash="hash_rev",
             total_pages=30,
             file_size_bytes=50000,
@@ -186,7 +186,7 @@ def test_offline_answer_includes_metric_values_and_citations():
     assert rev_cite is not None
     assert rev_cite.page_number == 12
     assert "$1,850" in rev_cite.snippet
-    assert rev_cite.source_filename == "DrinkPAK_Annual_Report.pdf"
+    assert rev_cite.source_filename == "Northwind_Annual_Report.pdf"
 
 
 def test_unrelated_query_returns_no_arbitrary_excerpts_or_citations():
@@ -198,10 +198,10 @@ def test_unrelated_query_returns_no_arbitrary_excerpts_or_citations():
             chunk_id="chunk_bev",
             doc_id="doc_drink",
             page_number=5,
-            text="DrinkPAK expanded aseptic beverage packaging capacity in Southern California.",
+            text="Northwind Cloud expanded data center capacity in the Pacific Northwest.",
             char_count=77,
             token_estimate=12,
-            metadata={"filename": "DrinkPAK.pdf"},
+            metadata={"filename": "Northwind.pdf"},
         ),
         TextChunk(
             chunk_id="chunk_rev",
@@ -210,7 +210,7 @@ def test_unrelated_query_returns_no_arbitrary_excerpts_or_citations():
             text="Net revenue increased primarily from co-manufacturing packaging contracts.",
             char_count=74,
             token_estimate=11,
-            metadata={"filename": "DrinkPAK.pdf"},
+            metadata={"filename": "Northwind.pdf"},
         ),
     ])
 
@@ -231,7 +231,7 @@ def test_unrelated_query_returns_no_arbitrary_excerpts_or_citations():
     assert "capital of France" in resp.answer_text
 
     # Must NOT contain arbitrary excerpts or claim verified audit analysis
-    assert "DrinkPAK" not in resp.answer_text
+    assert "Northwind" not in resp.answer_text
     assert "aseptic beverage" not in resp.answer_text
     assert "Key Findings from Report Disclosures" not in resp.answer_text
     assert "verified audit analysis" not in resp.answer_text

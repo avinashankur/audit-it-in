@@ -173,7 +173,7 @@ with st.sidebar:
         st.markdown("**Option 1: Quick Load Sample**")
         default_idx = 0
         for i, name in enumerate(sample_files):
-            if "DrinkPAK" in name and "2023-22" in name:
+            if name.startswith("AuditIt Demo"):
                 default_idx = i
                 break
 
@@ -237,11 +237,11 @@ if stats["total_nodes"] == 0:
     )
     c_btn, _ = st.columns([1, 2])
     with c_btn:
-        if st.button("🚀 Load DrinkPAK Sample Report (1-Click)", type="primary", use_container_width=True):
-            drinkpak_path = SAMPLE_DIR / "DrinkPAK - Consolidated FS & Audit Report 2023-22.pdf"
-            if drinkpak_path.exists():
-                with st.spinner("Ingesting DrinkPAK 2023 audit report and building graph..."):
-                    process_document(drinkpak_path.read_bytes(), filename=drinkpak_path.name)
+        if st.button("🚀 Load AuditIt Demo Report (1-Click)", type="primary", use_container_width=True):
+            demo_path = SAMPLE_DIR / "AuditIt Demo - Northwind Cloud FY2024.pdf"
+            if demo_path.exists():
+                with st.spinner("Ingesting AuditIt demo report and building graph..."):
+                    process_document(demo_path.read_bytes(), filename=demo_path.name)
                     st.rerun()
 
 st.divider()

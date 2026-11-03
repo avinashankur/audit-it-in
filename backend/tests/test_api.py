@@ -29,7 +29,7 @@ def test_list_samples(client):
     assert isinstance(samples, list)
     assert len(samples) > 0
     sample_names = [s["name"] for s in samples]
-    assert any("DrinkPAK" in name or "EOS" in name for name in sample_names)
+    assert sample_names == ["AuditIt Demo - Northwind Cloud FY2024.pdf"]
 
 
 def test_invalid_sample_load(client):
