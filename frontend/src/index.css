@@ -146,6 +146,14 @@
   --landing-cta-foreground: #0f172a;
   --landing-nav-active-bg: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
   --landing-nav-active-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.13), inset 0 2px 0 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(15, 23, 42, 0.08);
+  --landing-raised-bg: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  --landing-raised-shadow: inset 0 1.5px 0 0 rgba(255, 255, 255, 0.95), inset 0 0 0 1px rgba(15, 23, 42, 0.12), 0 1px 2px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --landing-card-bg: linear-gradient(180deg, #ffffff 0%, #f5f7fa 100%);
+  --landing-card-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.95), inset 0 0 0 1px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(15, 23, 42, 0.03);
+  --landing-input-bg: linear-gradient(180deg, #e7ecf2 0%, #eef2f6 100%);
+  --landing-input-shadow: inset 0 1.5px 3px rgba(15, 23, 42, 0.1), inset 0 0 0 1px rgba(15, 23, 42, 0.08), 0 1px 0 rgba(255, 255, 255, 0.9);
+  --landing-kbd-bg: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  --landing-kbd-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 0 0 1px rgba(15, 23, 42, 0.1), 0 1px 2px rgba(15, 23, 42, 0.08);
   --landing-sky-top: #3c9ef0;
   --landing-sky-mid: #57b1f7;
   --landing-sky-bottom: #74c2fb;
@@ -229,6 +237,14 @@
   --landing-cta-foreground: #161616;
   --landing-nav-active-bg: linear-gradient(180deg, #2b2b2b 0%, #262626 100%);
   --landing-nav-active-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 1px 3px rgba(0, 0, 0, 0.22);
+  --landing-raised-bg: linear-gradient(180deg, #2e2e2e 0%, #232323 100%);
+  --landing-raised-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 1px 2px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.25);
+  --landing-card-bg: linear-gradient(180deg, #242424 0%, #1c1c1c 100%);
+  --landing-card-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.35), 0 6px 16px rgba(0, 0, 0, 0.22);
+  --landing-input-bg: linear-gradient(180deg, #101010 0%, #141414 100%);
+  --landing-input-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 1px 0 rgba(255, 255, 255, 0.05);
+  --landing-kbd-bg: linear-gradient(180deg, #2c2c2c 0%, #222222 100%);
+  --landing-kbd-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 1px 2px rgba(0, 0, 0, 0.5);
   --landing-sky-top: #0f3a66;
   --landing-sky-mid: #165694;
   --landing-sky-bottom: #1e6cb5;
@@ -281,5 +297,27 @@
   :focus-visible {
     outline: 2px solid var(--foreground);
     outline-offset: 3px;
+  }
+}
+
+@layer utilities {
+  .shadow-landing-card {
+    background: var(--landing-card-bg);
+    box-shadow: var(--landing-card-shadow);
+  }
+
+  .shadow-landing-raised {
+    background: var(--landing-raised-bg);
+    box-shadow: var(--landing-raised-shadow);
+  }
+
+  .shadow-landing-sunken {
+    background: var(--landing-input-bg);
+    box-shadow: var(--landing-input-shadow);
+  }
+
+  .shadow-landing-kbd {
+    background: var(--landing-kbd-bg);
+    box-shadow: var(--landing-kbd-shadow);
   }
 }

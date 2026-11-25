@@ -23,14 +23,14 @@ export function ModeToggle({ className }: { className?: string }) {
       role="radiogroup"
       aria-label="Theme"
       className={cn(
-        'relative inline-grid grid-cols-3 rounded-xl border border-landing-canvas-border bg-landing-canvas p-0.5',
+        'shadow-landing-sunken relative inline-grid grid-cols-3 rounded-lg p-0.5',
         className,
       )}
     >
       <span
         aria-hidden="true"
         className={cn(
-          'pointer-events-none absolute top-0.5 left-0.5 size-7 rounded-[0.55rem] bg-landing-card-inner shadow-xs transition-transform duration-200 ease-out',
+          'shadow-landing-raised pointer-events-none absolute top-0.5 left-0.5 size-7 rounded-lg transition-transform duration-200 ease-out',
           THUMB_OFFSET[theme],
         )}
       />

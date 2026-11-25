@@ -1,5 +1,6 @@
 import { FileText, LayoutDashboard, Settings, type LucideIcon } from 'lucide-react'
 import { Link, NavLink } from 'react-router-dom'
+import { SurfaceCard } from '@/components/app/surface-card'
 import { Caption } from '@/components/app/typography'
 import {
   Sidebar,
@@ -33,7 +34,7 @@ function NavItem({
           cn(
             'flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-[0.75rem] font-medium transition-all',
             isActive
-              ? 'shadow-landing-pill text-landing-ink'
+              ? 'shadow-landing-raised text-landing-ink'
               : 'text-landing-ink-muted hover:bg-landing-card-inner/50 hover:text-landing-ink',
           )
         }
@@ -73,14 +74,14 @@ export function AppSidebar() {
       <SidebarHeader className="px-1 pt-5 pb-3">
         <Link
           to="/"
-          className="inline-flex w-fit items-center gap-2.5 rounded-lg px-2 py-1 text-landing-ink transition-opacity hover:opacity-80"
+          className="inline-flex w-fit items-center gap-2 rounded-lg px-2 py-1 text-landing-ink transition-opacity hover:opacity-80"
         >
           <img
             src="/favicon.svg"
             alt="AuditItIn"
-            className="size-7 rounded-lg shadow-xs"
+            className="size-5 rounded-md shadow-xs"
           />
-          <span className="text-base font-semibold tracking-tight">
+          <span className="text-sm font-semibold tracking-tight">
             AuditItIn
           </span>
         </Link>
@@ -108,7 +109,7 @@ export function AppSidebar() {
         </SidebarMenu>
 
         <div className="border-t border-landing-canvas-border pt-2.5">
-          <div className="rounded-xl border border-landing-canvas-border bg-landing-card-inner p-3">
+          <SurfaceCard className="p-3">
             <div className="mb-2.5 text-xs font-medium text-landing-ink-muted">
               Status
             </div>
@@ -139,7 +140,7 @@ export function AppSidebar() {
                 </li>
               ))}
             </ul>
-          </div>
+          </SurfaceCard>
         </div>
       </SidebarFooter>
     </Sidebar>

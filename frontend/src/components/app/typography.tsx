@@ -27,6 +27,18 @@ export function Title({ className, ...props }: ComponentProps<'h2'>) {
   )
 }
 
+export function PageHeading({ className, ...props }: ComponentProps<'h1'>) {
+  return (
+    <h1
+      className={cn(
+        'text-lg font-semibold tracking-tight text-landing-ink sm:text-xl',
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+
 export function Heading({ className, ...props }: ComponentProps<'p'>) {
   return (
     <p

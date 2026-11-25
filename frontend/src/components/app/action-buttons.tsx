@@ -37,7 +37,7 @@ export function SurfaceButton({ className, size = 'sm', ...props }: ButtonProps)
       variant="ghost"
       size={size}
       className={cn(
-        'shadow-landing-pill inline-flex h-9 items-center justify-center rounded-xl px-3 pb-0.5 text-xs leading-none font-medium text-landing-ink transition-opacity hover:opacity-90',
+        'shadow-landing-raised inline-flex h-9 items-center justify-center gap-1.5 rounded-xl px-3.5 text-xs leading-none font-medium text-landing-ink transition-all hover:bg-transparent hover:brightness-105 active:translate-y-px dark:hover:bg-transparent',
         className,
       )}
       {...props}

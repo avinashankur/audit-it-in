@@ -25,7 +25,7 @@ export function AppBreadcrumbs() {
   const { pathname } = useLocation()
   const { documents } = useSession()
 
-  if (pathname === '/' || pathname === '/dashboard') return null
+  if (pathname === '/' || pathname === '/dashboard' || pathname === '/settings') return null
 
   const segments = pathname.split('/').filter(Boolean)
   const match = pathname.match(/^\/filings\/([^/]+)/)
