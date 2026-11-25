@@ -67,65 +67,68 @@ async def execute_query_stream(
     provider = payload.model_provider or header_provider or "Offline Grounded"
 
     async def event_generator() -> AsyncGenerator[str, None]:
-        # 1. Start event
-        yield f"event: start\ndata: {json.dumps({'status': 'reasoning', 'provider': provider})}\n\n"
-        await asyncio.sleep(0.05)
+        try:
+            # 1. Start event
+            yield f"event: start\ndata: {json.dumps({'status': 'reasoning', 'provider': provider})}\n\n"
+            await asyncio.sleep(0.05)
 
-        # 2. Run retrieval & reasoning
-        resp = await asyncio.to_thread(
-            doc.qa_service.answer_query,
-            query=payload.query_text,
-            provider=provider,
-            api_key=header_api_key,
-            top_k=payload.top_k,
-        )
+            # 2. Run retrieval & reasoning
+            resp = await asyncio.to_thread(
+                doc.qa_service.answer_query,
+                query=payload.query_text,
+                provider=provider,
+                api_key=header_api_key,
+                top_k=payload.top_k,
+            )
 
-        # 3. Stream answer tokens in readable chunks
-        words = resp.answer_text.split(" ")
-        chunk_size = 3
-        for i in range(0, len(words), chunk_size):
-            chunk = " ".join(words[i : i + chunk_size])
-            if i + chunk_size < len(words):
-                chunk += " "
-            payload_data = json.dumps({"delta": chunk})
-            yield f"event: token\ndata: {payload_data}\n\n"
-            await asyncio.sleep(0.015)
+            # 3. Stream answer tokens in readable chunks
+            words = resp.answer_text.split(" ")
+            chunk_size = 3
+            for i in range(0, len(words), chunk_size):
+                chunk = " ".join(words[i : i + chunk_size])
+                if i + chunk_size < len(words):
+                    chunk += " "
+                payload_data = json.dumps({"delta": chunk})
+                yield f"event: token\ndata: {payload_data}\n\n"
+                await asyncio.sleep(0.015)
 
-        # 4. Stream citations
-        citations_data = [
-            {
-                "citation_id": c.citation_id,
-                "source_doc_id": c.source_doc_id,
-                "source_filename": c.source_filename,
-                "page_number": c.page_number,
-                "citation_type": (
-                    c.citation_type.value
-                    if hasattr(c.citation_type, "value")
-                    else str(c.citation_type)
-                ),
-                "snippet": c.snippet,
-                "relevance_score": c.relevance_score,
-            }
-            for c in resp.citations
-        ]
-        yield f"event: citations\ndata: {json.dumps(citations_data)}\n\n"
+            # 4. Stream citations
+            citations_data = [
+                {
+                    "citation_id": c.citation_id,
+                    "source_doc_id": c.source_doc_id,
+                    "source_filename": c.source_filename,
+                    "page_number": c.page_number,
+                    "citation_type": (
+                        c.citation_type.value
+                        if hasattr(c.citation_type, "value")
+                        else str(c.citation_type)
+                    ),
+                    "snippet": c.snippet,
+                    "relevance_score": c.relevance_score,
+                }
+                for c in resp.citations
+            ]
+            yield f"event: citations\ndata: {json.dumps(citations_data)}\n\n"
 
-        # 5. Stream causal paths
-        paths_data = [
-            {
-                "path_id": p.path_id,
-                "source_node_name": p.source_node_name,
-                "target_node_name": p.target_node_name,
-                "node_sequence": p.node_sequence,
-                "relationship_sequence": p.relationship_sequence,
-                "narrative_explanation": p.narrative_explanation,
-            }
-            for p in resp.causal_paths
-        ]
-        yield f"event: causal_paths\ndata: {json.dumps(paths_data)}\n\n"
+            # 5. Stream causal paths
+            paths_data = [
+                {
+                    "path_id": p.path_id,
+                    "source_node_name": p.source_node_name,
+                    "target_node_name": p.target_node_name,
+                    "node_sequence": p.node_sequence,
+                    "relationship_sequence": p.relationship_sequence,
+                    "narrative_explanation": p.narrative_explanation,
+                }
+                for p in resp.causal_paths
+            ]
+            yield f"event: causal_paths\ndata: {json.dumps(paths_data)}\n\n"
 
-        # 6. Stream completion event
-        yield f"event: done\ndata: {json.dumps({'query_id': resp.query_id, 'latency_ms': resp.latency_ms, 'model_provider': resp.model_provider})}\n\n"
+            # 6. Stream completion event
+            yield f"event: done\ndata: {json.dumps({'query_id': resp.query_id, 'latency_ms': resp.latency_ms, 'model_provider': resp.model_provider})}\n\n"
+        except Exception as exc:
+            yield f"event: error\ndata: {json.dumps({'detail': str(exc)})}\n\n"
 
     return StreamingResponse(
         event_generator(),

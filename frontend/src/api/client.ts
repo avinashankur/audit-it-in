@@ -233,6 +233,36 @@ export const api = {
 
     const decoder = new TextDecoder()
     let buffer = ''
+    let doneCalled = false
+
+    const processBlock = (block: string) => {
+      if (!block.trim()) return
+      const eventMatch = block.match(/^event:\s*(\w+)/m)
+      const dataMatch = block.match(/^data:\s*(.+)$/m)
+      if (!eventMatch || !dataMatch) return
+
+      const eventType = eventMatch[1]
+      let data: Record<string, unknown>
+      try {
+        data = JSON.parse(dataMatch[1])
+      } catch (e) {
+        console.error('Failed to parse SSE payload', e, dataMatch[1])
+        return
+      }
+
+      if (eventType === 'token' && typeof data.delta === 'string') {
+        onToken(data.delta)
+      } else if (eventType === 'citations' && onCitations) {
+        onCitations(data as unknown as AuditCitation[])
+      } else if (eventType === 'causal_paths' && onCausalPaths) {
+        onCausalPaths(data as unknown as CausalGraphPath[])
+      } else if (eventType === 'error') {
+        throw new Error(typeof data.detail === 'string' ? data.detail : 'Streaming query failed')
+      } else if (eventType === 'done' && onDone) {
+        doneCalled = true
+        onDone(data as { query_id: string; latency_ms?: number | Record<string, number>; model_provider?: string })
+      }
+    }
 
     try {
       while (true) {
@@ -241,39 +271,26 @@ export const api = {
           break
         }
         const { done, value } = await reader.read()
-        if (done) break
+        if (done) {
+          buffer += decoder.decode()
+          if (buffer.trim()) processBlock(buffer)
+          break
+        }
         if (signal?.aborted) {
           await reader.cancel().catch(() => {})
           break
         }
 
         buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n\n')
+        const lines = buffer.split(/\r?\n\r?\n/)
         buffer = lines.pop() || ''
 
         for (const block of lines) {
-          if (!block.trim()) continue
-          const eventMatch = block.match(/^event:\s*(\w+)/m)
-          const dataMatch = block.match(/^data:\s*(.+)$/m)
-
-          if (eventMatch && dataMatch) {
-            const eventType = eventMatch[1]
-            try {
-              const data = JSON.parse(dataMatch[1])
-              if (eventType === 'token' && data.delta) {
-                onToken(data.delta)
-              } else if (eventType === 'citations' && onCitations) {
-                onCitations(data)
-              } else if (eventType === 'causal_paths' && onCausalPaths) {
-                onCausalPaths(data)
-              } else if (eventType === 'done' && onDone) {
-                onDone(data)
-              }
-            } catch (e) {
-              console.error('Failed to parse SSE payload', e, dataMatch[1])
-            }
-          }
+          processBlock(block)
         }
+      }
+      if (!doneCalled && !signal?.aborted && onDone) {
+        onDone({ query_id: '' })
       }
     } finally {
       reader.releaseLock?.()
