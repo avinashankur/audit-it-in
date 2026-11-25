@@ -3,10 +3,8 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/s
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AppSidebar } from '@/components/app/app-sidebar'
 import { AppBreadcrumbs } from '@/components/app/breadcrumbs'
-import { StatusBar } from '@/components/app/page-header'
-import { SessionProvider, useSession } from '@/state/session'
+import { SessionProvider } from '@/state/session'
 import { ThemeProvider } from '@/components/theme-provider'
-import { formatTime, plural } from '@/lib/format'
 import { Overview } from '@/routes/dashboard/overview-page'
 import { Landing } from '@/routes/landing/landing-page'
 import { Filings } from '@/routes/filings/filings-page'
@@ -18,33 +16,26 @@ import { FilingTables } from '@/routes/filings/detail/filing-tables-page'
 import { Settings } from '@/routes/settings/settings-page'
 
 function Shell() {
-  const { documents, health } = useSession()
-
-  const right = health ? (
-    <span className="inline-flex items-center gap-2"><span className="size-1.5 shrink-0 bg-brand" aria-hidden="true" /><span>Engine ready · synced {formatTime()}</span></span>
-  ) : (
-    <span className="inline-flex items-center gap-2 text-destructive"><span className="size-1.5 shrink-0 bg-destructive" aria-hidden="true" /><span>Engine unreachable</span></span>
-  )
-
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="min-w-0">
-        <StatusBar
-          left={
-            <span className="flex items-center gap-3">
-              <SidebarTrigger className="-ml-1 size-7" />
-              {plural(documents.length, 'filing')} indexed
-            </span>
-          }
-          right={right}
-        />
-        <main className="mx-auto w-full max-w-6xl p-5 lg:p-10">
-          <AppBreadcrumbs />
-          <Outlet />
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+    <div data-landing className="h-dvh overflow-hidden bg-landing-card text-landing-ink">
+      <SidebarProvider
+        className="h-full min-h-0 bg-landing-card"
+        style={{ '--sidebar-width': '14rem' } as React.CSSProperties}
+      >
+        <AppSidebar />
+        <SidebarInset className="min-h-0 min-w-0 overflow-hidden bg-landing-canvas md:my-2.5 md:mr-2.5 md:rounded-2xl md:border md:border-landing-canvas-border md:shadow-xs md:peer-data-[variant=inset]:rounded-2xl">
+          <div className="shrink-0 px-5 pt-4 lg:px-8 lg:pt-5">
+            <SidebarTrigger className="size-8 rounded-lg text-landing-ink-muted hover:bg-landing-card hover:text-landing-ink" />
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <main className="mx-auto w-full max-w-6xl px-5 pt-3 pb-8 lg:px-10 lg:pt-4 lg:pb-10">
+              <AppBreadcrumbs />
+              <Outlet />
+            </main>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </div>
   )
 }
 

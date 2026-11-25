@@ -144,6 +144,8 @@
   --landing-border-subtle: rgba(255, 255, 255, 0.2);
   --landing-cta: #ffffff;
   --landing-cta-foreground: #0f172a;
+  --landing-nav-active-bg: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  --landing-nav-active-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.13), inset 0 2px 0 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(15, 23, 42, 0.08);
   --landing-sky-top: #3c9ef0;
   --landing-sky-mid: #57b1f7;
   --landing-sky-bottom: #74c2fb;
@@ -225,6 +227,8 @@
   --landing-border-subtle: rgba(250, 250, 250, 0.12);
   --landing-cta: #fafafa;
   --landing-cta-foreground: #161616;
+  --landing-nav-active-bg: linear-gradient(180deg, #2b2b2b 0%, #262626 100%);
+  --landing-nav-active-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 1px 3px rgba(0, 0, 0, 0.22);
   --landing-sky-top: #0f3a66;
   --landing-sky-mid: #165694;
   --landing-sky-bottom: #1e6cb5;
@@ -250,14 +254,23 @@
 
   [data-landing] {
     font-family: var(--font-landing);
-    --radius-lg-val: 0.75rem;
-    --radius-xl-val: 1rem;
+    --sidebar: var(--landing-card);
+    --sidebar-foreground: var(--landing-ink);
+    --sidebar-border: var(--landing-canvas-border);
+    --radius-md-val: 0.375rem;
+    --radius-lg-val: 0.5rem;
+    --radius-xl-val: 0.75rem;
     --radius-2xl-val: 1.25rem;
     --radius-3xl-val: 1.75rem;
   }
 
   .bg-landing-hero {
     background: var(--landing-hero-gradient);
+  }
+
+  .shadow-landing-pill {
+    background: var(--landing-nav-active-bg);
+    box-shadow: var(--landing-nav-active-shadow);
   }
 
   body {

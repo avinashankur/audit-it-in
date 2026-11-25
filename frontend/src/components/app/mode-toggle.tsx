@@ -30,7 +30,7 @@ export function ModeToggle({ className }: { className?: string }) {
       <span
         aria-hidden="true"
         className={cn(
-          'pointer-events-none absolute top-0.5 left-0.5 size-7 rounded-full bg-landing-card-inner shadow-xs transition-transform duration-200 ease-out',
+          'pointer-events-none absolute top-0.5 left-0.5 size-7 rounded-[0.55rem] bg-landing-card-inner shadow-xs transition-transform duration-200 ease-out',
           THUMB_OFFSET[theme],
         )}
       />
