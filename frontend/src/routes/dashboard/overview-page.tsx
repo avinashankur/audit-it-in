@@ -1,36 +1,77 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { api } from '@/api/client'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
-import { BarList, } from '@/components/app/stat-strip'
-import { StatStrip } from '@/components/app/stat-strip'
-import { InversePanel } from '@/components/app/inverse-panel'
-import { Num } from '@/components/app/num'
-import { PageHeader, SectionHeading } from '@/components/app/page-header'
-import { useSession } from '@/state/session'
-import { formatCount, formatDate, plural } from '@/lib/format'
-import type { GraphResponseDto } from '@/types'
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { api } from "@/api/client";
+import { SurfaceButton } from "@/components/app/action-buttons";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { formatCount, formatDate } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { useSession } from "@/state/session";
+import type { GraphResponseDto } from "@/types";
+
+const AREA_CONFIG = {
+  value: {
+    label: "Balance",
+    color: "var(--landing-ink)",
+  },
+} satisfies ChartConfig;
+
+const BAR_CONFIG = {
+  metrics: {
+    label: "Metrics",
+    color: "var(--landing-ink)",
+  },
+  edges: {
+    label: "Edges",
+    color: "var(--landing-ink-muted)",
+  },
+} satisfies ChartConfig;
 
 export function Overview() {
-  const { documents, health, settings } = useSession()
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const lead = documents.find((d) => d.document_id === selectedId) ?? documents[0]
-  const [graph, setGraph] = useState<GraphResponseDto | null>(null)
+  const { documents, health, settings } = useSession();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const lead =
+    documents.find((d) => d.document_id === selectedId) ?? documents[0];
+  const [graph, setGraph] = useState<GraphResponseDto | null>(null);
 
   useEffect(() => {
-    if (!lead) return setGraph(null)
-    const c = new AbortController()
+    if (!lead) return setGraph(null);
+    const c = new AbortController();
     api
       .getDocumentGraph(lead.document_id, undefined, 1, c.signal)
       .then(setGraph)
-      .catch((err) => err?.name !== 'AbortError' && console.error('balances', err))
-    return () => c.abort()
-  }, [lead?.document_id])
+      .catch(
+        (err) => err?.name !== "AbortError" && console.error("balances", err),
+      );
+    return () => c.abort();
+  }, [lead?.document_id]);
 
   const totals = useMemo(
     () =>
@@ -43,192 +84,327 @@ export function Overview() {
         { metrics: 0, footnotes: 0, edges: 0 },
       ),
     [documents],
-  )
+  );
 
   const balances = useMemo(
     () =>
       (graph?.nodes ?? [])
-        .filter((n) => n.type === 'metricNode' && n.data.value != null)
+        .filter((n) => n.type === "metricNode" && n.data.value != null)
         .sort((a, b) => (b.data.value ?? 0) - (a.data.value ?? 0))
-        .slice(0, 6)
+        .slice(0, 7)
         .map((n) => ({
-          label: n.data.name.replace(/\s[\d,\s]{4,}$/, ''),
+          label: n.data.name.replace(/\s[\d,\s]{4,}$/, ""),
           value: n.data.value ?? 0,
-          display: n.data.formatted_value?.replace(/\$/g, '') ?? '',
+          display: n.data.formatted_value?.replace(/\$/g, "") ?? "",
         })),
     [graph],
-  )
+  );
 
-  const top = balances[0]
+  const filingBars = useMemo(
+    () =>
+      documents.slice(0, 6).map((d) => ({
+        name: d.filename.replace(/\.pdf$/i, "").slice(0, 12),
+        metrics: d.metric_nodes_count,
+        edges: d.causal_edges_count,
+      })),
+    [documents],
+  );
+
+  const top = balances[0];
+
+  const kpis = [
+    {
+      label: "Filings",
+      value: formatCount(documents.length),
+      sub: "indexed in session",
+      badge: health ? "Ready" : "Offline",
+      positive: Boolean(health),
+    },
+    {
+      label: "Metrics",
+      value: formatCount(totals.metrics),
+      sub: `${formatCount(totals.footnotes)} footnotes linked`,
+      badge: lead ? "Extracted" : "Idle",
+      positive: totals.metrics > 0,
+    },
+    {
+      label: "Causal Edges",
+      value: formatCount(totals.edges),
+      sub: totals.edges === 0 ? "Add key in Settings" : "cause-to-effect links",
+      badge: totals.edges > 0 ? "Active" : "0 links",
+      positive: totals.edges > 0,
+    },
+  ];
 
   return (
-    <>
-      <PageHeader
-        title="Overview"
-        lede="What the engine has read, and what it found inside it."
-        actions={
-          documents.length > 1 ? (
+    <div className="space-y-4 text-landing-ink">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-lg font-semibold tracking-tight text-landing-ink sm:text-xl">
+          Dashboard
+        </h1>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {documents.length > 1 && (
             <Select
               value={lead?.document_id}
               onValueChange={(id) => setSelectedId(id)}
             >
-              <SelectTrigger className="w-72 sm:w-80 md:w-96 max-w-full" aria-label="Select filing for overview">
+              <SelectTrigger
+                className="h-8 w-56 max-w-full rounded-lg border-landing-canvas-border bg-landing-card px-3 text-xs text-landing-ink sm:w-64"
+                aria-label="Select filing for overview"
+              >
                 <SelectValue placeholder="Select filing" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                data-landing
+                className="rounded-xl border-landing-canvas-border bg-landing-card-inner text-landing-ink"
+              >
                 {documents.map((d) => (
-                  <SelectItem key={d.document_id} value={d.document_id} title={d.filename.replace(/\.pdf$/i, '')}>
-                    {d.filename.replace(/\.pdf$/i, '')}
+                  <SelectItem
+                    key={d.document_id}
+                    value={d.document_id}
+                    title={d.filename.replace(/\.pdf$/i, "")}
+                    className="rounded-lg text-xs"
+                  >
+                    {d.filename.replace(/\.pdf$/i, "")}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          ) : undefined
-        }
-      />
-
-      <InversePanel className="px-6 py-8 lg:px-8">
-        <p className="text-xs text-inverse-muted">Headline finding</p>
-        <h2 className="mt-4 max-w-md font-serif text-4xl leading-none lg:text-5xl">
-          {lead && top
-            ? `${top.label} is the largest balance at ${top.display}.`
-            : 'Nothing has been read yet.'}
-        </h2>
-        <p className="mt-3 max-w-prose text-sm text-inverse-muted">
-          {lead
-            ? `${plural(lead.metric_nodes_count, 'metric')} and ${plural(
-                lead.causal_edges_count,
-                'causal edge',
-              )} extracted from ${lead.filename}.`
-            : 'Load a filing to build its graph, extract its tables and enable grounded questions.'}
-        </p>
-        <div className="mt-6 flex flex-wrap gap-2">
-          {lead && (
-            <Button
-              asChild
-              size="lg"
-              className="bg-inverse-foreground text-inverse hover:bg-inverse-foreground/85"
-            >
-              <Link to={`/filings/${lead.document_id}/graph`}>Explore the causal graph</Link>
-            </Button>
           )}
-          <Button
-            asChild
-            variant="outline"
-            size="lg"
-            className="border-inverse-border bg-transparent text-inverse-foreground hover:bg-inverse-foreground/10 dark:bg-transparent"
-          >
-            <Link to="/filings">Open the filings library</Link>
-          </Button>
+
+          {lead && (
+            <SurfaceButton asChild>
+              <Link to={`/filings/${lead.document_id}/graph`}>
+                Causal graph
+              </Link>
+            </SurfaceButton>
+          )}
+
+          <SurfaceButton asChild>
+            <Link to="/filings">Filings</Link>
+          </SurfaceButton>
         </div>
-      </InversePanel>
-
-      <StatStrip
-        className="mt-8"
-        stats={[
-          { label: 'Filings ingested', value: formatCount(documents.length) },
-          { label: 'Metrics extracted', value: formatCount(totals.metrics) },
-          { label: 'Footnotes linked', value: formatCount(totals.footnotes) },
-          {
-            label: 'Causal edges',
-            value: formatCount(totals.edges),
-            note: totals.edges === 0 ? 'Set a model provider in Settings' : undefined,
-          },
-        ]}
-      />
-
-      <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <section className="min-w-0 lg:col-span-2">
-          <SectionHeading>Where the money sits</SectionHeading>
-          <CardDescription className="mt-1">
-            {lead ? `Largest balances in ${lead.filename}` : 'No filing selected'}
-          </CardDescription>
-          <div className="mt-4">
-            <BarList items={balances} unit="" />
-          </div>
-        </section>
-
-        <InversePanel className="min-w-0 p-6">
-          <SectionHeading>Engine</SectionHeading>
-          <p className="mt-1 text-xs text-inverse-muted">
-            {health ? 'All services responding' : 'Unreachable at ' + (settings.graphBackend ?? '')}
-          </p>
-          <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
-            {[
-              ['Parser', health ? 'Running' : 'Offline'],
-              ['Graph builder', health ? 'Running' : 'Offline'],
-              ['Adapter', health?.backends_available?.join(', ') ?? '—'],
-              ['Reasoning', settings.provider],
-              ['Version', health?.version ?? '—'],
-            ].map(([k, v]) => (
-              <div key={k} className="contents">
-                <dt className="text-inverse-muted">{k}</dt>
-                <dd className="min-w-0 text-right">{v}</dd>
-              </div>
-            ))}
-          </dl>
-        </InversePanel>
       </div>
 
-      <SectionHeading className="mt-12">Recent filings</SectionHeading>
-      {documents.length ? (
-        <Card className="mt-3 border-0 bg-transparent p-0">
-          <CardHeader className="sr-only">
-            <CardTitle>Recent filings</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border">
-                  <TableHead>Filing</TableHead>
-                  <TableHead>Period</TableHead>
-                  <TableHead className="text-right">Metrics</TableHead>
-                  <TableHead className="text-right">Edges</TableHead>
-                  <TableHead className="text-right">Ingested</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {documents.slice(0, 5).map((d) => (
-                  <TableRow key={d.document_id}>
-                    <TableCell className="font-medium">
-                      <Link to={`/filings/${d.document_id}`} className="hover:underline">
-                        {d.filename.replace(/\.pdf$/i, '')}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{d.status}</TableCell>
-                    <TableCell className="p-0 text-right">
-                      <Num value={formatCount(d.metric_nodes_count)} />
-                    </TableCell>
-                    <TableCell className="p-0 text-right">
-                      <Num value={formatCount(d.causal_edges_count)} muted={!d.causal_edges_count} />
-                    </TableCell>
-                    <TableCell className="p-0 text-right">
-                      <Num value={formatDate(d.uploaded_at)} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      ) : (
-        <Empty className="mt-3 border border-dashed">
-          <EmptyHeader>
-            <EmptyTitle>No filings in this session</EmptyTitle>
-            <EmptyDescription>
-              Ingestion is scoped to the session. Open the library to load a sample or upload a PDF.
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      )}
+      {/* Top 3 KPI Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {kpis.map((item) => (
+          <div
+            key={item.label}
+            className="rounded-xl border border-landing-canvas-border bg-landing-card p-4"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-medium text-landing-ink-muted">
+                {item.label}
+              </span>
+              <span
+                className={cn(
+                  "inline-flex items-center text-[11px] leading-none font-medium",
+                  item.positive
+                    ? "text-landing-ink"
+                    : "text-landing-ink-muted",
+                )}
+              >
+                {item.badge}
+              </span>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-2xl font-semibold tracking-tight text-landing-ink tabular-nums">
+                {item.value}
+              </span>
+              <span className="truncate text-xs text-landing-ink-muted">
+                {item.sub}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Charts Row: Top Balances & Filing Coverage */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <section className="rounded-xl border border-landing-canvas-border bg-landing-card p-5 lg:col-span-3">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium text-landing-ink-muted">
+                {lead
+                  ? `Top balances in ${lead.filename.replace(/\.pdf$/i, "")}`
+                  : "Top balances"}
+              </p>
+              <p className="mt-1 text-2xl font-semibold tracking-tight text-landing-ink tabular-nums">
+                {lead && top ? top.display : "0"}
+              </p>
+            </div>
+            {lead && top && (
+              <span className="inline-flex items-center text-[11px] leading-none font-medium text-landing-ink-muted">
+                {top.label}
+              </span>
+            )}
+          </div>
+
+          {balances.length ? (
+            <ChartContainer config={AREA_CONFIG} className="mt-4 aspect-auto h-52 w-full">
+              <AreaChart
+                data={balances}
+                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="balanceFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--landing-ink)"
+                      stopOpacity={0.22}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--landing-ink)"
+                      stopOpacity={0.0}
+                    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  vertical={false}
+                  strokeDasharray="3 3"
+                  stroke="var(--landing-canvas-border)"
+                />
+                <XAxis
+                  dataKey="label"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tick={{ fontSize: 11 }}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  width={48}
+                  tick={{ fontSize: 11 }}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="var(--landing-ink)"
+                  strokeWidth={1.75}
+                  fill="url(#balanceFill)"
+                />
+              </AreaChart>
+            </ChartContainer>
+          ) : (
+            <Empty className="mt-4 h-48 border-0 bg-transparent p-0">
+              <EmptyHeader>
+                <EmptyTitle className="text-sm text-landing-ink">
+                  No balances extracted yet
+                </EmptyTitle>
+                <EmptyDescription className="text-xs text-landing-ink-muted">
+                  Load a filing from the library to plot its extracted balance
+                  sheet and income metrics.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          )}
+        </section>
+
+        <section className="flex flex-col justify-between rounded-xl border border-landing-canvas-border bg-landing-card p-5 lg:col-span-2">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <p className="text-sm font-medium text-landing-ink">
+                Filing Coverage
+              </p>
+            </div>
+            <Link
+              to="/filings"
+              className="text-xs font-medium text-landing-ink-muted transition-colors hover:text-landing-ink"
+            >
+              View all
+            </Link>
+          </div>
+
+          {filingBars.length ? (
+            <ChartContainer config={BAR_CONFIG} className="mt-4 aspect-auto h-52 w-full">
+              <BarChart
+                data={filingBars}
+                barSize={18}
+                barGap={6}
+                margin={{ top: 8, right: 4, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid
+                  vertical={false}
+                  strokeDasharray="3 3"
+                  stroke="var(--landing-canvas-border)"
+                />
+                <XAxis
+                  dataKey="name"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tick={{ fontSize: 11 }}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  width={32}
+                  tick={{ fontSize: 11 }}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar
+                  dataKey="metrics"
+                  fill="var(--landing-ink)"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="edges"
+                  fill="var(--landing-ink-muted)"
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ChartContainer>
+          ) : (
+            <Empty className="mt-4 h-48 border-0 bg-transparent p-0">
+              <EmptyHeader>
+                <EmptyTitle className="text-sm text-landing-ink">No filings indexed</EmptyTitle>
+                <EmptyDescription className="text-xs text-landing-ink-muted">
+                  Upload a PDF in the filings library to compare extracted
+                  coverage.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          )}
+        </section>
+      </div>
+
+      {/* Runtime & Configuration Strip */}
+      <section className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-landing-canvas-border bg-landing-card px-5 py-3.5 text-xs">
+        <dl className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-landing-ink-muted">
+          {[
+            ["Adapter", health?.backends_available?.join(", ") ?? "None"],
+            ["Reasoning", settings.provider],
+            ...(lead ? [["Updated", formatDate(lead.uploaded_at)]] : []),
+          ].map(([k, v]) => (
+            <div key={k} className="inline-flex items-center gap-1.5">
+              <dt>{k}:</dt>
+              <dd className="font-medium text-landing-ink tabular-nums">{v}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <Link
+          to="/settings"
+          className="font-medium text-landing-ink-muted transition-colors hover:text-landing-ink"
+        >
+          Configure
+        </Link>
+      </section>
 
       {health === null && (
-        <Alert variant="destructive" className="mt-6">
-          <AlertDescription>
-            The engine could not be reached. Check that the API is running before loading filings.
+        <Alert variant="destructive" className="rounded-xl">
+          <AlertDescription className="text-xs">
+            The engine could not be reached. Check that the API is running
+            before loading filings.
           </AlertDescription>
         </Alert>
       )}
-    </>
-  )
+    </div>
+  );
 }
