@@ -1,16 +1,16 @@
 ---
 name: fumadocs
 description: >
-  Write and design beautiful, well-structured documentation using Fumadocs.
+  Write and design beautiful, well-structured documentation using Fumadocs and Fumapress.
   Covers MDX component selection, visual hierarchy, page templates, sidebar config,
-  frontmatter conventions, and Next.js setup.
+  frontmatter conventions, and setup for both Fumadocs (Next.js) and Fumapress (Waku).
   Use this skill whenever the user asks to write, create, add, improve, or redesign
   documentation pages — including "write docs for", "add a docs page", "create a guide",
   "write a spec", "improve the docs", "make the docs look better", "restructure the sidebar",
-  or "set up fumadocs".
+  or "set up fumadocs / fumapress".
 ---
 
-# Fumadocs Documentation Authoring Skill
+# Fumadocs / Fumapress Documentation Authoring Skill
 
 > **Goal**: Produce documentation pages that look polished, are scannable, and make
 > correct use of the rich interactive components available in the Fumadocs ecosystem.
@@ -25,7 +25,9 @@ Read these companion files **before writing any docs**:
 | :------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `references/components.md`             | Component usage guide — `<Callout>`, `<Tabs>`, `<Steps>`, `<Cards>`, `<Accordions>`, `<Files>`, `<InlineTOC>`, and `<Mermaid>` with props, examples, and when-to-use guidance. **Always cross-check against official docs** before using. |
 | `references/setup-fumadocs.md`         | Fumadocs (Next.js) setup guidance — high-level architecture and what to fetch from official docs                                                                                                                                          |
+| `references/setup-fumapress.md`        | Fumapress (Waku) setup guidance — high-level architecture and what to fetch from official docs                                                                                                                                            |
 | `references/folder-group-root-tabs.md` | Official folder group root tabs pattern (default subject at root `/`) — native `(framework)` folder groups, automatic sidebar scoping, and zero-hack layout                                                                               |
+| `references/setup-section-switcher.md` | **(Strictly for Fumapress — may be stale)** Fumapress `press.config.tsx` section switcher workaround. For standard Fumadocs (Next.js), use `references/folder-group-root-tabs.md` instead.                                                |
 | `examples/page-templates.md`           | Copy-paste MDX templates for section indexes, guides, specs, concept pages, and API references                                                                                                                                            |
 
 ---
@@ -75,7 +77,7 @@ Folders can have sidebar icons via `"icon": "LucideIconName"` in `meta.json`. Wh
 from the Lucide library — no manual import needed. Use PascalCase names (e.g., `"Compass"`, `"Layers"`).
 
 > [!WARNING]
-> If `lucideIconsPlugin()` is **not** enabled in the source loader, `"icon": "Name"` in `meta.json` passes through as the raw string `"Name"`. In custom layouts, doing `tab.icon ?? <Fallback />` evaluates to the raw string and renders text inside the 16px icon slot, causing the word to overlap the title (e.g. rendering text inside the icon slot, like `"LayeOverview"`). Always guard: `(typeof tab.icon !== "string" && tab.icon) ? tab.icon : <Fallback />`.
+> If `lucideIconsPlugin()` is **not** enabled (e.g. standard Fumapress), `"icon": "Name"` in `meta.json` passes through as the raw string `"Name"`. In custom layouts, doing `tab.icon ?? <Fallback />` evaluates to the raw string and renders text inside the 16px icon slot, causing the word to overlap the title (e.g. rendering text inside the icon slot, like `"LayeOverview"`). Always guard: `(typeof tab.icon !== "string" && tab.icon) ? tab.icon : <Fallback />`.
 
 ### 1.5 Avoid Redundant Section Prefixes (No Stuttering in Subchapter Titles)
 
@@ -189,13 +191,13 @@ Every folder **must** have an `index.mdx` that:
 ### 4.3 Mermaid Diagrams
 
 > [!IMPORTANT]
-> **Mermaid is NOT Built-In**: Fumadocs does not include a Mermaid renderer out of the box. Without a configured renderer, ` ```mermaid ` code blocks display as raw plain text with a copy button.
+> **Mermaid is NOT Built-In**: Neither Fumadocs nor Fumapress includes a Mermaid renderer out of the box. Without a configured renderer, ` ```mermaid ` code blocks display as raw plain text with a copy button.
 >
 > **Recommended Setup (Client Component with `mermaid`)**:
 >
 > 1. Install `mermaid` and `next-themes` (`npm install mermaid next-themes`).
 > 2. Create `src/components/mermaid.tsx` using `mermaid.initialize()` and client-side hydration guard.
-> 3. Register `Mermaid` in `src/components/mdx.tsx` under `getMDXComponents`.
+> 3. Register `Mermaid` in `src/components/mdx.tsx` (Fumadocs / Next.js) or `press.config.tsx` (Fumapress) under `getMDXComponents`.
 > 4. In MDX, invoke directly: `<Mermaid chart={`flowchart TD ...`} />`.
 >
 > _(Alternatively, install `beautiful-mermaid` for a lighter server-rendered SVG approach)._
@@ -318,9 +320,10 @@ To ensure diagrams are crisp, solid, uncolored (neutral monochrome), and comfort
 4. Add "<section-name>" to the parent meta.json pages array
 5. Create each child page .mdx file
 
-> **Root Switcher Sections**:
-> - For multi-section documentation with root tabs and switchers, use folder groups `content/docs/(section)/` with `"root": true` in `meta.json` (see `references/folder-group-root-tabs.md`).
-> - When `lucideIconsPlugin()` is enabled in `src/lib/source.ts`, any Lucide icon name specified in `meta.json` resolves automatically without manual configuration. In MDX cards, strings or components work directly: `<Card icon="Binary" />`.
+> **Root Switcher Sections (`"root": "subject"`)**:
+> - Add `"root": "subject"` and `"icon": "AnyLucideIcon"` (e.g. `"Binary"`, `"Cpu"`) to `meta.json`.
+> - **Zero Config Changes Needed**: Any Lucide icon works dynamically when `getLayoutTabs(props.tree, { transform: (opt) => opt })` is paired with an icon resolver. No changes to `press.config.tsx` needed for new sections or icons. In MDX cards, strings work directly: `<Card icon="Binary" />`.
+> - **Dev Server Watcher Gotcha**: When adding an entirely new directory on disk while `npm run dev` is running, Vite's build macro on Windows may not detect the new folder until the dev server is restarted or `press.config.tsx` is saved.
 ```
 
 ---
@@ -332,7 +335,7 @@ To ensure diagrams are crisp, solid, uncolored (neutral monochrome), and comfort
 | Repeating parent section/folder name in child titles (stuttering) | Degrades sidebar scannability, wastes horizontal space causing truncation, and duplicates breadcrumb/switcher context (e.g., 'Auth > Auth Overview') | Strip the parent prefix: use 'Overview', 'Quickstart', 'Configuration', 'Architecture'           |
 | Plain bulleted link list for navigation                           | Looks like a plain README, not a docs site                                                                                                           | Use `<Cards>` with icons                                                                         |
 | Raw LaTeX dollar signs for math/Big-O (`$O(n)$`, `$k$`, `$\le$`)  | MDX without KaTeX/MathJax plugins renders literal `$` signs, and braces like `${...}` or `2^{h+1}` trigger Acorn JSX syntax errors                   | Use inline code backticks: `` `O(1)` ``, `` `O(n)` ``, `` `O(log n)` ``, `` `k` ``, `` `<= e` `` |
-| Relying on Mermaid without configuring a renderer                 | Fenced ` ```mermaid ` blocks render as plain raw code text                                                                                           | Install `mermaid` or `beautiful-mermaid` and register `Mermaid` in `src/components/mdx.tsx`       |
+| Relying on Mermaid without configuring a renderer                 | Fenced ` ```mermaid ` blocks render as plain raw code text                                                                                           | Install `beautiful-mermaid` and configure `CustomPre` + `<Mermaid>` in `press.config.tsx`        |
 | Ordered list for setup instructions                               | Missing visual step indicators                                                                                                                       | Use `<Steps>` / `<Step>`                                                                         |
 | Bold text for warnings                                            | Easy to miss, no visual weight                                                                                                                       | Use `<Callout type="warn">`                                                                      |
 | Multiple code blocks for package manager variants                 | Cluttered, repetitive                                                                                                                                | Use `<Tabs>` with npm/pnpm/yarn                                                                  |
@@ -361,38 +364,38 @@ import { File, Files, Folder } from "fumadocs-ui/components/files";
 import { InlineTOC } from "fumadocs-ui/components/inline-toc";
 ```
 
-### Fumadocs MDX Component Registration (`src/components/mdx.tsx`)
+### Fumapress Component Registration (`press.config.tsx`)
 
-In Fumadocs, configure `src/components/mdx.tsx` to register all interactive components globally across your `.mdx` files:
+In Fumapress, `defaultMdxComponents` only provides basic HTML tags, `Card`, `Cards`, and `Callout`. To make `<Tabs>`, `<Steps>`, `<Accordions>`, `<Files>`, Lucide icons, and custom components like `<Mermaid>` globally available without manual imports in every `.mdx` file, configure `getMdxComponents`:
 
 ```typescript
-import defaultMdxComponents from "fumadocs-ui/mdx";
-import { Step, Steps } from "fumadocs-ui/components/steps";
+import defaultMdxComponents, { createRelativeLink } from "fumadocs-ui/mdx";
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
-import { Callout } from "fumadocs-ui/components/callout";
-import { Card, Cards } from "fumadocs-ui/components/card";
+import { Step, Steps } from "fumadocs-ui/components/steps";
 import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
 import { File, Files, Folder } from "fumadocs-ui/components/files";
-import { InlineTOC } from "fumadocs-ui/components/inline-toc";
-import { Mermaid } from "./mermaid";
+import { Mermaid } from "./src/components/mermaid";
 
-export function getMDXComponents() {
-  return {
-    ...defaultMdxComponents,
-    Step,
-    Steps,
-    Tab,
-    Tabs,
-    Callout,
-    Card,
-    Cards,
-    Accordion,
-    Accordions,
-    File,
-    Files,
-    Folder,
-    InlineTOC,
-    Mermaid,
-  };
-}
+export default defineConfig({
+  // ...
+}).adapters(
+  fumadocsMdx({
+    async getMdxComponents(page) {
+      return {
+        ...defaultMdxComponents,
+        Mermaid,
+        a: createRelativeLink(await this.getLoader(), page),
+        Tabs,
+        Tab,
+        Steps,
+        Step,
+        Accordion,
+        Accordions,
+        File,
+        Files,
+        Folder,
+      };
+    },
+  }),
+);
 ```

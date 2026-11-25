@@ -64,7 +64,7 @@ Wrap the app with `RootProvider` from `fumadocs-ui/provider/next`.
 
 Uses `DocsLayout` from `fumadocs-ui/layouts/docs` with the page tree.
 
-> For multi-section or framework switchers across root tabs in Next.js, see [Official Folder Group Root Tabs Guide](./folder-group-root-tabs.md).
+> For multi-section or framework switchers across root tabs in Next.js, see [Official Folder Group Root Tabs Guide](./folder-group-root-tabs.md). *(Note: `setup-section-switcher.md` is strictly for Fumapress / Waku and may be stale).*
 
 ### 6. `src/app/docs/[[...slug]]/page.tsx`
 

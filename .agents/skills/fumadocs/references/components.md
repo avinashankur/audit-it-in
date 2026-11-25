@@ -1,4 +1,4 @@
-# Fumadocs Component Reference
+# Fumadocs / Fumapress Component Reference
 
 > This file documents **every interactive component** available in the MDX content layer.
 > All components listed below are globally registered — no imports needed inside `.mdx` files.
@@ -94,7 +94,7 @@ Organize content into switchable tabbed panels. Great for showing alternatives.
 
 - Package manager alternatives (npm/pnpm/yarn/bun)
 - Language variants (TypeScript/JavaScript)
-- Framework alternatives (e.g. Next.js/Astro)
+- Framework alternatives (Next.js/Fumapress)
 - Before/after comparisons
 - Different config approaches
 
@@ -330,7 +330,7 @@ This page covers all modules. Use the table of contents below to jump to any sec
 Renders Mermaid diagrams as responsive SVGs with automatic dark/light theme switching.
 
 > [!IMPORTANT]
-> **Setup Required**: Fumadocs does not ship with a built-in Mermaid renderer out of the box. Without setup, ` ```mermaid ` code blocks display as raw syntax-highlighted code.
+> **Setup Required**: Neither Fumadocs nor Fumapress ships with a built-in Mermaid renderer. Without setup, ` ```mermaid ` code blocks display as raw syntax-highlighted code.
 >
 > Install `mermaid` (`npm i mermaid next-themes`), create `src/components/mermaid.tsx`, and register `Mermaid` in `getMDXComponents`.
 
