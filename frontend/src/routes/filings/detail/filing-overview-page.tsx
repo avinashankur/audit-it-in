@@ -1,16 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowRight, FileSpreadsheet, GitFork, MessageSquareText, Search } from 'lucide-react'
+import { ArrowUpRight, Send, Sparkles } from 'lucide-react'
 import { api } from '@/api/client'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
+import { SurfaceButton } from '@/components/app/action-buttons'
 import { Num } from '@/components/app/num'
-import { useSession } from '@/state/session'
+import { SurfaceCard } from '@/components/app/surface-card'
+import { Heading } from '@/components/app/typography'
+import { Skeleton } from '@/components/ui/skeleton'
 import { formatCount } from '@/lib/format'
-import type { TableData } from '@/types'
+import { useSession } from '@/state/session'
+import type { GraphResponseDto, TableData } from '@/types'
 
 const QUICK_QUESTIONS = [
   'What drove the change in operating income?',
@@ -21,32 +20,41 @@ const QUICK_QUESTIONS = [
 export function FilingOverview() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { documents, settings } = useSession()
+  const { documents } = useSession()
   const filing = documents.find((d) => d.document_id === id)
 
   const [tables, setTables] = useState<TableData[]>([])
-  const [loadingTables, setLoadingTables] = useState(true)
+  const [graph, setGraph] = useState<GraphResponseDto | null>(null)
+  const [loading, setLoading] = useState(true)
   const [inquiry, setInquiry] = useState('')
 
   useEffect(() => {
     if (!id) return
-    let mounted = true
-    setLoadingTables(true)
-    api
-      .getDocumentTables(id)
-      .then((res) => {
-        if (mounted) setTables(res ?? [])
-      })
-      .catch((err) => {
-        console.error('Failed to load tables preview', err)
+    const c = new AbortController()
+    setLoading(true)
+    Promise.allSettled([
+      api.getDocumentTables(id),
+      api.getDocumentGraph(id, undefined, 1, c.signal),
+    ])
+      .then(([tablesRes, graphRes]) => {
+        if (c.signal.aborted) return
+        if (tablesRes.status === 'fulfilled') setTables(tablesRes.value ?? [])
+        if (graphRes.status === 'fulfilled') setGraph(graphRes.value ?? null)
       })
       .finally(() => {
-        if (mounted) setLoadingTables(false)
+        if (!c.signal.aborted) setLoading(false)
       })
-    return () => {
-      mounted = false
-    }
+    return () => c.abort()
   }, [id])
+
+  const topMetrics = useMemo(
+    () =>
+      (graph?.nodes ?? [])
+        .filter((n) => n.type === 'metricNode')
+        .sort((a, b) => Math.abs(b.data.value ?? 0) - Math.abs(a.data.value ?? 0))
+        .slice(0, 6),
+    [graph],
+  )
 
   if (!filing) return null
 
@@ -56,203 +64,149 @@ export function FilingOverview() {
     navigate(`/filings/${id}/qa?q=${encodeURIComponent(q)}`)
   }
 
-  const modelLabel =
-    settings.provider === 'Gemini'
-      ? 'Gemini 3.8 Flash'
-      : settings.provider === 'Offline Grounded'
-      ? 'Offline Grounded'
-      : settings.provider
-
   return (
-    <div className="flex flex-col gap-10">
-      <section aria-labelledby="features-heading">
-        <h2 id="features-heading" className="sr-only">
-          Analysis Features
-        </h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Card className="rounded-none border-hairline flex flex-col justify-between">
-            <CardHeader className="p-5 pb-3">
-              <div className="flex items-center justify-between">
-                <span className="inline-flex size-8 items-center justify-center border border-hairline bg-muted/30">
-                  <GitFork className="size-4 text-brand" />
-                </span>
-                <Badge variant="outline" className="rounded-none text-xs">
-                  {formatCount(filing.causal_edges_count)} edges
-                </Badge>
-              </div>
-              <CardTitle className="font-serif text-xl mt-3">Causal Graph</CardTitle>
-              <CardDescription className="text-xs leading-relaxed">
-                Trace causal paths and dependencies connecting financial metrics, revenue drivers, and footnote citations.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-5 pt-0">
-              <div className="mb-4 text-xs text-muted-foreground">
-                <Num value={formatCount(filing.metric_nodes_count)} /> metric nodes extracted
-              </div>
-              <Button asChild variant="outline" className="w-full rounded-none justify-between hover:border-brand hover:text-brand">
-                <Link to="graph">
-                  <span>Explore causal graph</span>
-                  <ArrowRight className="size-3.5" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-none border-hairline flex flex-col justify-between">
-            <CardHeader className="p-5 pb-3">
-              <div className="flex items-center justify-between">
-                <span className="inline-flex size-8 items-center justify-center border border-hairline bg-muted/30">
-                  <MessageSquareText className="size-4 text-brand" />
-                </span>
-                <Badge variant="outline" className="rounded-none text-xs">
-                  {modelLabel}
-                </Badge>
-              </div>
-              <CardTitle className="font-serif text-xl mt-3">Ask Questions (Q&amp;A)</CardTitle>
-              <CardDescription className="text-xs leading-relaxed">
-                Query this filing with grounded reasoning. Every answer synthesizes exact page citations without hallucinations.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-5 pt-0">
-              <div className="mb-4 text-xs text-muted-foreground">
-                {settings.apiKey ? 'BYOK API Key active' : 'Grounding & citations verified'}
-              </div>
-              <Button asChild variant="outline" className="w-full rounded-none justify-between hover:border-brand hover:text-brand">
-                <Link to="qa">
-                  <span>Open Q&amp;A console</span>
-                  <ArrowRight className="size-3.5" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-none border-hairline flex flex-col justify-between">
-            <CardHeader className="p-5 pb-3">
-              <div className="flex items-center justify-between">
-                <span className="inline-flex size-8 items-center justify-center border border-hairline bg-muted/30">
-                  <FileSpreadsheet className="size-4 text-brand" />
-                </span>
-                <Badge variant="outline" className="rounded-none text-xs">
-                  {formatCount(filing.tables_count)} tables
-                </Badge>
-              </div>
-              <CardTitle className="font-serif text-xl mt-3">Financial Tables</CardTitle>
-              <CardDescription className="text-xs leading-relaxed">
-                Inspect structured balance sheets, income statements, and cash flows with aligned figures and headers.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-5 pt-0">
-              <div className="mb-4 text-xs text-muted-foreground">
-                {loadingTables ? 'Scanning tables...' : `${tables.length} tables parsed and searchable`}
-              </div>
-              <Button asChild variant="outline" className="w-full rounded-none justify-between hover:border-brand hover:text-brand">
-                <Link to="tables">
-                  <span>View financial tables</span>
-                  <ArrowRight className="size-3.5" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      <section aria-labelledby="inquiry-heading" className="border-t border-hairline pt-8">
-        <h3 id="inquiry-heading" className="font-serif text-xl">
-          Ask an audit question about this filing
-        </h3>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Submit any balance or causal query to jump into Q&amp;A with citations and synthesized analysis.
-        </p>
-
+    <div className="space-y-5">
+      {/* Prompt Bar */}
+      <div>
         <form
-          className="mt-4 flex gap-2"
+          className="flex items-center gap-2"
           onSubmit={(e) => {
             e.preventDefault()
             handleAsk(inquiry)
           }}
         >
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
+          <div className="shadow-landing-sunken flex h-11 min-w-0 flex-1 items-center gap-2.5 rounded-xl px-3.5 transition-shadow focus-within:ring-1 focus-within:ring-landing-ink-muted">
+            <Sparkles className="size-3.5 shrink-0 text-landing-accent" aria-hidden="true" />
+            <input
               id="filing-quick-inquiry"
               name="filing_quick_inquiry"
               value={inquiry}
               onChange={(e) => setInquiry(e.target.value)}
               placeholder="Ask about a balance, driver, or footnote citation..."
-              className="h-11 rounded-none pl-9"
+              className="w-full min-w-0 bg-transparent text-xs text-landing-ink outline-none placeholder:text-landing-ink-muted"
             />
           </div>
-          <Button type="submit" size="lg" className="rounded-none" disabled={!inquiry.trim()}>
-            Ask
-          </Button>
+          <SurfaceButton type="submit" className="h-11 px-4" disabled={!inquiry.trim()}>
+            <Send className="size-3.5" aria-hidden="true" />
+            <span>Ask</span>
+          </SurfaceButton>
         </form>
 
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="text-xs text-muted-foreground">Try asking:</span>
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-xs">
+          <span className="text-landing-ink-muted">Try:</span>
           {QUICK_QUESTIONS.map((q) => (
             <button
               key={q}
               type="button"
               onClick={() => handleAsk(q)}
-              className="border border-hairline bg-muted/20 px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-brand hover:text-foreground cursor-pointer"
+              className="cursor-pointer text-landing-ink-muted underline-offset-4 transition-colors hover:text-landing-ink hover:underline"
             >
               {q}
             </button>
           ))}
         </div>
-      </section>
+      </div>
 
-      <section aria-labelledby="tables-heading" className="border-t border-hairline pt-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 id="tables-heading" className="font-serif text-xl">
-              Extracted Financial Statements &amp; Tables
-            </h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Direct access to all statements identified in this filing.
-            </p>
-          </div>
-          <Button asChild variant="ghost" size="sm" className="rounded-none text-xs">
-            <Link to="tables">
-              <span>See all {filing.tables_count} tables</span>
-              <ArrowRight className="ml-1 size-3.5" />
+      {/* Asymmetric 2-Card Overview */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        {/* Left: Key Extracted Metrics */}
+        <SurfaceCard as="section" className="overflow-hidden lg:col-span-3">
+          <div className="flex items-center justify-between gap-3 border-b border-landing-canvas-border px-5 py-3.5">
+            <Heading className="text-landing-ink">Key Metrics</Heading>
+            <Link
+              to="graph"
+              className="inline-flex items-center gap-1 text-xs font-medium text-landing-ink-muted transition-colors hover:text-landing-ink"
+            >
+              <span>Causal graph</span>
+              <ArrowUpRight className="size-3.5" aria-hidden="true" />
             </Link>
-          </Button>
-        </div>
+          </div>
 
-        {loadingTables ? (
-          <div className="mt-4 flex flex-col gap-2">
-            {[0, 1, 2].map((i) => (
-              <Skeleton key={i} className="h-12 w-full rounded-none" />
-            ))}
+          {loading ? (
+            <div className="space-y-2 p-5">
+              {[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-9 w-full rounded-lg bg-landing-card-inner" />
+              ))}
+            </div>
+          ) : topMetrics.length > 0 ? (
+            <div className="divide-y divide-landing-canvas-border">
+              {topMetrics.map((m) => (
+                <Link
+                  key={m.id}
+                  to="graph"
+                  className="flex items-center justify-between gap-4 px-5 py-3 text-xs transition-colors hover:bg-landing-card-inner/60"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-landing-ink">
+                      {m.data.name.replace(/\s[\d,\s]{4,}$/, '')}
+                    </p>
+                    {m.data.period && (
+                      <p className="mt-0.5 text-landing-ink-muted">{m.data.period}</p>
+                    )}
+                  </div>
+                  <span className="shrink-0 font-mono text-sm font-medium text-landing-ink tabular-nums">
+                    {m.data.formatted_value ?? (m.data.value != null ? formatCount(m.data.value) : '')}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="px-5 py-8 text-xs text-landing-ink-muted">
+              No metric nodes extracted for this filing yet.
+            </p>
+          )}
+        </SurfaceCard>
+
+        {/* Right: Extracted Tables */}
+        <SurfaceCard as="section" className="overflow-hidden lg:col-span-2">
+          <div className="flex items-center justify-between gap-3 border-b border-landing-canvas-border px-5 py-3.5">
+            <Heading className="text-landing-ink">Statements &amp; Tables</Heading>
+            <Link
+              to="tables"
+              className="inline-flex items-center gap-1 text-xs font-medium text-landing-ink-muted transition-colors hover:text-landing-ink"
+            >
+              <span>View all</span>
+              <ArrowUpRight className="size-3.5" aria-hidden="true" />
+            </Link>
           </div>
-        ) : tables.length > 0 ? (
-          <div className="mt-4 divide-y divide-hairline border border-hairline">
-            {tables.slice(0, 6).map((t, idx) => (
-              <div
-                key={`${t.page_number}-${idx}`}
-                className="flex items-center justify-between p-3.5 text-sm transition-colors hover:bg-muted/30"
-              >
-                <div className="min-w-0 flex-1 pr-4">
-                  <p className="truncate font-medium text-foreground">
-                    {t.title || `Table on Page ${t.page_number}`}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Page {t.page_number} · {t.rows?.length ?? 0} rows · {t.headers?.length ?? 0} columns
-                  </p>
-                </div>
-                <Button asChild variant="outline" size="xs" className="rounded-none text-xs shrink-0">
-                  <Link to={`tables?q=${encodeURIComponent(t.title || `page ${t.page_number}`)}`}>
-                    View table
-                  </Link>
-                </Button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="mt-4 text-xs text-muted-foreground">No financial tables were identified in this document.</p>
-        )}
-      </section>
+
+          {loading ? (
+            <div className="space-y-2 p-5">
+              {[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-9 w-full rounded-lg bg-landing-card-inner" />
+              ))}
+            </div>
+          ) : tables.length > 0 ? (
+            <div className="divide-y divide-landing-canvas-border">
+              {tables.slice(0, 6).map((t, idx) => (
+                <Link
+                  key={`${t.page_number}-${idx}`}
+                  to={`tables?q=${encodeURIComponent(t.title || `page ${t.page_number}`)}`}
+                  className="group flex items-center justify-between gap-3 px-5 py-3 text-xs transition-colors hover:bg-landing-card-inner/60"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-landing-ink">
+                      {t.title || `Table on Page ${t.page_number}`}
+                    </p>
+                    <p className="mt-0.5 flex items-center gap-x-3 text-landing-ink-muted">
+                      <span>Page <Num value={t.page_number} /></span>
+                      <span><Num value={t.rows?.length ?? 0} /> rows</span>
+                    </p>
+                  </div>
+                  <ArrowUpRight
+                    className="size-3.5 shrink-0 text-landing-ink-muted opacity-0 transition-opacity group-hover:opacity-100"
+                    aria-hidden="true"
+                  />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="px-5 py-8 text-xs text-landing-ink-muted">
+              No financial tables were identified in this document.
+            </p>
+          )}
+        </SurfaceCard>
+      </div>
     </div>
   )
 }

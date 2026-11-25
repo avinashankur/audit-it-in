@@ -31,7 +31,7 @@ export function LandingSteps() {
           <div className="space-y-8">
             {/* Step 1 */}
             <div className="relative">
-              <span className="absolute top-6 -left-10 flex size-8 items-center justify-center rounded-full bg-landing-ink text-xs font-semibold text-landing-canvas sm:-left-12">
+              <span className="shadow-landing-raised absolute top-6 -left-10 flex size-8 items-center justify-center rounded-full text-xs font-semibold text-landing-ink sm:-left-12">
                 1
               </span>
               <FeatureCard className="items-center text-center">
@@ -46,7 +46,7 @@ export function LandingSteps() {
                         <Caption className="text-landing-ink-muted">248 pages</Caption>
                       </div>
                     </div>
-                    <div className="mt-3 flex items-center justify-between rounded-xl bg-landing-card px-3 py-2 text-xs">
+                    <div className="shadow-landing-sunken mt-3 flex items-center justify-between rounded-xl px-3 py-2 text-xs">
                       <span className="text-landing-ink-muted">PDF Extraction</span>
                       <span className="font-medium text-landing-accent">Ready</span>
                     </div>
@@ -64,7 +64,7 @@ export function LandingSteps() {
 
             {/* Step 2 */}
             <div className="relative">
-              <span className="absolute top-6 -left-10 flex size-8 items-center justify-center rounded-full bg-landing-ink text-xs font-semibold text-landing-canvas sm:-left-12">
+              <span className="shadow-landing-raised absolute top-6 -left-10 flex size-8 items-center justify-center rounded-full text-xs font-semibold text-landing-ink sm:-left-12">
                 2
               </span>
               <FeatureCard className="items-center text-center">
@@ -80,11 +80,11 @@ export function LandingSteps() {
                       </div>
                     </div>
                     <div className="mt-3 space-y-2 text-xs">
-                      <div className="flex items-center justify-between rounded-xl bg-landing-card px-3 py-2">
+                      <div className="shadow-landing-sunken flex items-center justify-between rounded-xl px-3 py-2">
                         <span className="text-landing-ink-muted">Metric Nodes</span>
                         <span className="font-mono font-medium text-landing-ink">48</span>
                       </div>
-                      <div className="flex items-center justify-between rounded-xl bg-landing-card px-3 py-2">
+                      <div className="shadow-landing-sunken flex items-center justify-between rounded-xl px-3 py-2">
                         <span className="text-landing-ink-muted">Causal Edges</span>
                         <span className="font-mono font-medium text-landing-ink">112</span>
                       </div>
@@ -103,7 +103,7 @@ export function LandingSteps() {
 
             {/* Step 3 */}
             <div className="relative">
-              <span className="absolute top-6 -left-10 flex size-8 items-center justify-center rounded-full bg-landing-ink text-xs font-semibold text-landing-canvas sm:-left-12">
+              <span className="shadow-landing-raised absolute top-6 -left-10 flex size-8 items-center justify-center rounded-full text-xs font-semibold text-landing-ink sm:-left-12">
                 3
               </span>
               <FeatureCard className="items-center text-center">
@@ -114,14 +114,14 @@ export function LandingSteps() {
                       <span className="text-xs font-medium text-landing-ink">Cited Answer</span>
                     </div>
                     <div className="mt-3 space-y-2">
-                      <div className="flex items-center justify-between rounded-xl bg-landing-card px-3 py-2 text-xs">
+                      <div className="shadow-landing-sunken flex items-center justify-between rounded-xl px-3 py-2 text-xs">
                         <span className="inline-flex items-center gap-1.5 font-medium text-landing-ink">
                           <CheckCircle2 className="size-3.5 text-landing-accent" aria-hidden="true" />
                           Operating Cash Flow
                         </span>
                         <span className="font-mono text-landing-ink-muted">Page 42</span>
                       </div>
-                      <div className="flex items-center justify-between rounded-xl bg-landing-card px-3 py-2 text-xs">
+                      <div className="shadow-landing-sunken flex items-center justify-between rounded-xl px-3 py-2 text-xs">
                         <span className="inline-flex items-center gap-1.5 font-medium text-landing-ink">
                           <CheckCircle2 className="size-3.5 text-landing-accent" aria-hidden="true" />
                           Debt Covenants

@@ -1,14 +1,28 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
+import { FileSpreadsheet, Search } from 'lucide-react'
 import { api } from '@/api/client'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Num } from '@/components/app/num'
+import { SurfaceCard } from '@/components/app/surface-card'
+import { Heading } from '@/components/app/typography'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
+import { Badge } from '@/components/ui/badge'
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -17,9 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Num } from '@/components/app/num'
-import { cn } from '@/lib/utils'
 import { EMPTY, formatCount } from '@/lib/format'
+import { cn } from '@/lib/utils'
 import type { TableData } from '@/types'
 
 const FIGURE = /^[+\-−(]?[$€£]?\s?\d[\d,.\s%)]*$/
@@ -71,17 +84,15 @@ export function FilingTables() {
     return (
       <div className="flex flex-col gap-4">
         {[0, 1].map((i) => (
-          <Card key={i}>
-            <CardHeader>
-              <Skeleton className="h-6 w-1/2" />
-              <Skeleton className="h-4 w-1/4" />
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-              {[0, 1, 2, 3, 4].map((j) => (
-                <Skeleton key={j} className="h-8 w-full" />
+          <SurfaceCard key={i} className="p-5">
+            <Skeleton className="h-5 w-1/2 rounded-lg bg-landing-card-inner" />
+            <Skeleton className="mt-2 h-4 w-1/4 rounded-lg bg-landing-card-inner" />
+            <div className="mt-4 flex flex-col gap-2">
+              {[0, 1, 2, 3].map((j) => (
+                <Skeleton key={j} className="h-8 w-full rounded-lg bg-landing-card-inner" />
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </SurfaceCard>
         ))}
       </div>
     )
@@ -89,9 +100,9 @@ export function FilingTables() {
 
   if (failed) {
     return (
-      <Alert variant="destructive">
-        <AlertTitle>Tables unavailable</AlertTitle>
-        <AlertDescription>
+      <Alert variant="destructive" className="rounded-xl">
+        <AlertTitle className="text-sm font-medium">Tables unavailable</AlertTitle>
+        <AlertDescription className="text-xs">
           The extracted tables could not be read. Re-open this filing from the library.
         </AlertDescription>
       </Alert>
@@ -100,62 +111,92 @@ export function FilingTables() {
 
   if (!tables.length) {
     return (
-      <Empty className="border border-dashed py-16">
-        <EmptyHeader>
-          <EmptyTitle>No structured tables found</EmptyTitle>
-          <EmptyDescription>
-            This filing had no tabular regions the extractor could read. The causal graph and
-            grounded questions still work on its narrative text.
-          </EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <SurfaceCard className="p-6">
+        <Empty className="border-0 bg-transparent py-12">
+          <EmptyHeader>
+            <EmptyMedia
+              variant="icon"
+              className="rounded-xl bg-landing-accent-soft text-landing-accent"
+            >
+              <FileSpreadsheet className="size-5" aria-hidden="true" />
+            </EmptyMedia>
+            <EmptyTitle className="text-sm font-medium text-landing-ink">
+              No structured tables found
+            </EmptyTitle>
+            <EmptyDescription className="text-xs text-landing-ink-muted">
+              This filing had no tabular regions the extractor could read. The causal graph and
+              grounded questions still work on its narrative text.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      </SurfaceCard>
     )
   }
 
   return (
-    <>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <p className="text-sm text-muted-foreground">
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xs font-medium text-landing-ink-muted">
           {query
             ? `${formatCount(filtered.length)} of ${formatCount(tables.length)} tables`
             : `${formatCount(tables.length)} ${tables.length === 1 ? 'table' : 'tables'}`}
         </p>
-        <div className="flex flex-wrap items-center gap-3">
+
+        <div className="flex flex-wrap items-center gap-2">
           {tables.length > 1 && (
             <Select onValueChange={(val) => setQuery(val === 'all' ? '' : val)}>
-              <SelectTrigger className="w-56" aria-label="Jump to table">
+              <SelectTrigger
+                className="shadow-landing-sunken h-9 w-56 rounded-xl border-0 bg-transparent px-3 text-xs text-landing-ink shadow-none transition-shadow focus-visible:ring-1 focus-visible:ring-landing-ink-muted data-placeholder:text-landing-ink-muted"
+                aria-label="Jump to table"
+              >
                 <SelectValue placeholder="Jump to table..." />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All tables</SelectItem>
+              <SelectContent
+                data-landing
+                className="rounded-xl border-landing-canvas-border bg-landing-card-inner text-landing-ink"
+              >
+                <SelectItem value="all" className="rounded-lg text-xs">
+                  All tables
+                </SelectItem>
                 {tables.map((t, idx) => (
-                  <SelectItem key={t.table_id ?? idx} value={t.title?.trim() || `Table ${idx + 1}`}>
+                  <SelectItem
+                    key={t.table_id ?? idx}
+                    value={t.title?.trim() || `Table ${idx + 1}`}
+                    className="rounded-lg text-xs"
+                  >
                     {t.title?.trim() || `Table ${idx + 1}`} (p. {t.page_number})
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           )}
-          <Input
-            aria-label="Search tables"
-            name="table_search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search tables"
-            className="w-56"
-          />
+
+          <div className="shadow-landing-sunken flex h-9 w-56 items-center gap-2 rounded-xl px-3 transition-shadow focus-within:ring-1 focus-within:ring-landing-ink-muted">
+            <Search className="size-3.5 shrink-0 text-landing-ink-muted" aria-hidden="true" />
+            <input
+              type="search"
+              aria-label="Search tables"
+              name="table_search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search tables"
+              className="w-full min-w-0 bg-transparent text-xs text-landing-ink outline-none placeholder:text-landing-ink-muted"
+            />
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         {filtered.map((t, i) => (
           <ExtractedTable key={t.table_id ?? i} table={t} index={i} />
         ))}
         {!filtered.length && (
-          <p className="text-sm text-muted-foreground">No table matches “{query}”.</p>
+          <SurfaceCard className="p-6 text-center text-xs text-landing-ink-muted">
+            No table matches &ldquo;{query}&rdquo;.
+          </SurfaceCard>
         )}
       </div>
-    </>
+    </div>
   )
 }
 
@@ -166,67 +207,85 @@ function ExtractedTable({ table, index }: { table: TableData; index: number }) {
   const title = table.title?.trim() || `Table ${index + 1}`
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span>Page {table.page_number}</span>
-          <Badge variant="outline">
+    <SurfaceCard className="overflow-hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-landing-canvas-border px-5 py-4">
+        <Heading className="text-landing-ink">{title}</Heading>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge
+            variant="outline"
+            className="rounded-full border-landing-canvas-border bg-landing-card-inner px-2.5 py-0.5 text-xs font-medium text-landing-ink-muted"
+          >
+            Page {table.page_number}
+          </Badge>
+          <Badge
+            variant="outline"
+            className="rounded-full border-landing-canvas-border bg-landing-card-inner px-2.5 py-0.5 text-xs font-medium text-landing-ink-muted"
+          >
             {formatCount(headers.length)} columns
           </Badge>
-          <Badge variant="outline">{formatCount(rows.length)} rows</Badge>
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="p-0">
-        {rows.length ? (
-          <ScrollArea className="w-full">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {headers.map((h, c) => (
-                    <TableHead
+          <Badge
+            variant="outline"
+            className="rounded-full border-landing-canvas-border bg-landing-card-inner px-2.5 py-0.5 text-xs font-medium text-landing-ink-muted"
+          >
+            {formatCount(rows.length)} rows
+          </Badge>
+        </div>
+      </div>
+
+      {rows.length ? (
+        <ScrollArea className="w-full">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-landing-canvas-border hover:bg-transparent">
+                {headers.map((h, c) => (
+                  <TableHead
+                    key={c}
+                    className={cn(
+                      'max-w-64 truncate text-xs font-medium text-landing-ink-muted first:pl-5 last:pr-5',
+                      numeric[c] && 'text-right',
+                    )}
+                    title={h}
+                  >
+                    {h}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((row, r) => (
+                <TableRow
+                  key={r}
+                  className="border-landing-canvas-border transition-colors hover:bg-landing-card-inner/60"
+                >
+                  {(row ?? []).map((cell, c) => (
+                    <TableCell
                       key={c}
-                      className={cn('max-w-64 truncate', numeric[c] && 'text-right')}
-                      title={h}
+                      className={cn(
+                        'max-w-80 truncate text-xs text-landing-ink first:pl-5 last:pr-5',
+                        c === 0 && 'font-medium',
+                        numeric[c] && 'text-right',
+                      )}
+                      title={cell}
                     >
-                      {h}
-                    </TableHead>
+                      {numeric[c] ? (
+                        <Num value={cell?.trim() ? cell : EMPTY} />
+                      ) : cell?.trim() ? (
+                        cell
+                      ) : (
+                        <span className="text-landing-ink-muted">{EMPTY}</span>
+                      )}
+                    </TableCell>
                   ))}
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((row, r) => (
-                  <TableRow key={r}>
-                    {(row ?? []).map((cell, c) => (
-                      <TableCell
-                        key={c}
-                        className={cn(
-                          'max-w-80 truncate',
-                          c === 0 && 'font-medium',
-                          numeric[c] && 'text-right',
-                        )}
-                        title={cell}
-                      >
-                        {numeric[c] ? (
-                          <Num value={cell?.trim() ? cell : EMPTY} />
-                        ) : cell?.trim() ? (
-                          cell
-                        ) : (
-                          <span className="text-muted-foreground">{EMPTY}</span>
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </ScrollArea>
-        ) : (
-          <p className="px-4 pb-4 text-sm text-muted-foreground">
-            The header was recognised but no rows came back.
-          </p>
-        )}
-      </CardContent>
-    </Card>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+      ) : (
+        <p className="px-5 py-4 text-xs text-landing-ink-muted">
+          The header was recognised but no rows came back.
+        </p>
+      )}
+    </SurfaceCard>
   )
 }

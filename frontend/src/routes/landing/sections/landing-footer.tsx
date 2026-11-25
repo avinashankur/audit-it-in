@@ -60,7 +60,7 @@ export function LandingFooter() {
             <ModeToggle />
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-landing-canvas-border bg-landing-card px-6 py-4 text-xs text-landing-ink-muted">
+          <div className="shadow-landing-card flex flex-wrap items-center justify-between gap-4 rounded-2xl px-6 py-4 text-xs text-landing-ink-muted">
             <span>AuditItIn</span>
             <span>All Rights Reserved</span>
           </div>

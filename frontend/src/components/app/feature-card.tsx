@@ -5,7 +5,7 @@ export function FeatureCard({ className, children, ...props }: ComponentProps<'d
   return (
     <div
       className={cn(
-        'flex flex-col justify-between overflow-hidden rounded-3xl border border-landing-canvas-border bg-landing-card p-6 sm:p-8',
+        'shadow-landing-card flex flex-col justify-between overflow-hidden rounded-3xl p-6 sm:p-8',
         className,
       )}
       {...props}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Lock, Maximize2, Minimize2, Minus, Move, Plus, RotateCcw, Scan } from 'lucide-react'
+import { Lock, Maximize2, Minimize2, Minus, Move, Plus, RotateCcw, Scan, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import dagre from '@dagrejs/dagre'
 import {
@@ -18,12 +18,13 @@ import '@xyflow/react/dist/style.css'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { MetricNode, DisclosureNode, cleanName, type AuditNodeData } from './nodes'
 import { Num } from '@/components/app/num'
+import { SurfaceCard } from '@/components/app/surface-card'
+import { Caption, Heading } from '@/components/app/typography'
 import { EMPTY } from '@/lib/format'
 import type { GraphResponseDto, SubgraphResponseDto } from '@/types'
 
@@ -89,9 +90,9 @@ function OnScreenControls({
     <div
       role="toolbar"
       aria-label="Canvas zoom and view controls"
-      className="absolute bottom-4 left-4 z-20 flex flex-col border border-inverse-border bg-inverse/90 text-inverse-foreground backdrop-blur-xs select-none"
+      className="shadow-landing-card absolute bottom-4 left-4 z-20 flex flex-col overflow-hidden rounded-xl text-landing-ink select-none"
     >
-      <div className="flex h-6 items-center justify-center border-b border-inverse-border font-mono text-[10px] text-inverse-muted">
+      <div className="flex h-7 items-center justify-center border-b border-landing-canvas-border px-1.5 font-mono text-xs text-landing-ink-muted tabular-nums">
         {Math.round(zoom * 100)}%
       </div>
       <button
@@ -99,7 +100,7 @@ function OnScreenControls({
         onClick={() => zoomIn({ duration: 150 })}
         title="Zoom in (+)"
         aria-label="Zoom in"
-        className="flex size-8 items-center justify-center border-b border-inverse-border transition-colors hover:bg-inverse-foreground/15 hover:text-inverse-foreground active:bg-inverse-foreground/25"
+        className="flex size-8 cursor-pointer items-center justify-center border-b border-landing-canvas-border transition-colors hover:bg-landing-card-inner"
       >
         <Plus className="size-3.5" />
       </button>
@@ -108,7 +109,7 @@ function OnScreenControls({
         onClick={() => zoomOut({ duration: 150 })}
         title="Zoom out (-)"
         aria-label="Zoom out"
-        className="flex size-8 items-center justify-center border-b border-inverse-border transition-colors hover:bg-inverse-foreground/15 hover:text-inverse-foreground active:bg-inverse-foreground/25"
+        className="flex size-8 cursor-pointer items-center justify-center border-b border-landing-canvas-border transition-colors hover:bg-landing-card-inner"
       >
         <Minus className="size-3.5" />
       </button>
@@ -117,7 +118,7 @@ function OnScreenControls({
         onClick={() => fitView({ padding: 0.18, duration: 250 })}
         title="Fit all nodes into view"
         aria-label="Fit all nodes"
-        className="flex size-8 items-center justify-center border-b border-inverse-border transition-colors hover:bg-inverse-foreground/15 hover:text-inverse-foreground active:bg-inverse-foreground/25"
+        className="flex size-8 cursor-pointer items-center justify-center border-b border-landing-canvas-border transition-colors hover:bg-landing-card-inner"
       >
         <Scan className="size-3.5" />
       </button>
@@ -126,7 +127,7 @@ function OnScreenControls({
         onClick={() => zoomTo(1, { duration: 200 })}
         title="Reset zoom to 100%"
         aria-label="Reset zoom"
-        className="flex size-8 items-center justify-center border-b border-inverse-border transition-colors hover:bg-inverse-foreground/15 hover:text-inverse-foreground active:bg-inverse-foreground/25"
+        className="flex size-8 cursor-pointer items-center justify-center border-b border-landing-canvas-border transition-colors hover:bg-landing-card-inner"
       >
         <RotateCcw className="size-3.5" />
       </button>
@@ -137,11 +138,11 @@ function OnScreenControls({
         aria-label={isDraggable ? 'Lock node positions' : 'Enable node dragging'}
         aria-pressed={isDraggable}
         className={cn(
-          'flex size-8 items-center justify-center transition-colors hover:bg-inverse-foreground/15 hover:text-inverse-foreground active:bg-inverse-foreground/25',
-          isDraggable && 'bg-brand/20 text-brand'
+          'flex size-8 cursor-pointer items-center justify-center transition-colors hover:bg-landing-card-inner',
+          isDraggable && 'bg-landing-card-inner text-landing-accent',
         )}
       >
-        {isDraggable ? <Move className="size-3.5 text-brand" /> : <Lock className="size-3.5" />}
+        {isDraggable ? <Move className="size-3.5" /> : <Lock className="size-3.5" />}
       </button>
     </div>
   )
@@ -274,9 +275,9 @@ export function CausalGraph({
         type: 'default',
         label: undefined,
         style: {
-          stroke: lit && lit.has(e.source) && lit.has(e.target) ? 'var(--brand)' : 'var(--inverse-foreground)',
-          strokeWidth: lit && lit.has(e.source) && lit.has(e.target) ? 1.6 : 1.1,
-          opacity: lit && !(lit.has(e.source) && lit.has(e.target)) ? 0.12 : 0.8,
+          stroke: lit && lit.has(e.source) && lit.has(e.target) ? 'var(--landing-accent)' : 'var(--landing-ink-muted)',
+          strokeWidth: lit && lit.has(e.source) && lit.has(e.target) ? 1.75 : 1.1,
+          opacity: lit && !(lit.has(e.source) && lit.has(e.target)) ? 0.14 : 0.75,
         },
       })),
     [apiEdges, lit],
@@ -311,40 +312,55 @@ export function CausalGraph({
   const node = apiNodes.find((n) => n.id === focus)
 
   return (
-    <div className={cn("flex flex-col overflow-hidden border border-border lg:flex-row", isFullscreen && "fixed inset-0 z-50 h-screen w-screen border-0 bg-background")}>
-      <div className="flex min-w-0 flex-1 flex-col bg-inverse">
-        <div className="flex flex-wrap items-center gap-3 border-b border-inverse-border px-4 py-3">
-          <Input
-            aria-label="Search nodes"
-            name="node_search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search nodes"
-            className="w-56 border-inverse-border bg-transparent text-inverse-foreground placeholder:text-inverse-muted focus-visible:border-inverse-foreground"
-          />
+    <SurfaceCard
+      className={cn(
+        'flex flex-col overflow-hidden lg:flex-row',
+        isFullscreen && 'fixed inset-0 z-50 h-screen w-screen rounded-none bg-landing-canvas',
+      )}
+    >
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex flex-wrap items-center gap-2.5 border-b border-landing-canvas-border px-4 py-3">
+          <div className="shadow-landing-sunken flex h-8 w-52 items-center gap-2 rounded-xl px-3 transition-shadow focus-within:ring-1 focus-within:ring-landing-ink-muted">
+            <Search className="size-3.5 shrink-0 text-landing-ink-muted" aria-hidden="true" />
+            <input
+              type="search"
+              aria-label="Search nodes"
+              name="node_search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search nodes"
+              className="w-full min-w-0 bg-transparent text-xs text-landing-ink outline-none placeholder:text-landing-ink-muted"
+            />
+          </div>
           <Select value={direction} onValueChange={(v) => v && setDirection(v as Direction)}>
             <SelectTrigger
-              className="h-8 w-32 border-inverse-border bg-transparent text-xs text-inverse-foreground focus-visible:border-inverse-foreground"
+              className="shadow-landing-sunken h-8 w-32 rounded-xl border-0 bg-transparent px-3 text-xs text-landing-ink shadow-none transition-shadow focus-visible:ring-1 focus-visible:ring-landing-ink-muted"
               aria-label="Traversal direction"
             >
               <SelectValue placeholder="Direction" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="causes">Causes</SelectItem>
-              <SelectItem value="both">Both</SelectItem>
-              <SelectItem value="effects">Effects</SelectItem>
+            <SelectContent
+              data-landing
+              className="rounded-xl border-landing-canvas-border bg-landing-card-inner text-landing-ink"
+            >
+              <SelectItem value="causes" className="rounded-lg text-xs">Causes</SelectItem>
+              <SelectItem value="both" className="rounded-lg text-xs">Both</SelectItem>
+              <SelectItem value="effects" className="rounded-lg text-xs">Effects</SelectItem>
             </SelectContent>
           </Select>
           <Select value={String(hops)} onValueChange={(v) => v && onHops(Number(v))}>
             <SelectTrigger
-              className="h-8 w-28 border-inverse-border bg-transparent text-xs text-inverse-foreground focus-visible:border-inverse-foreground"
+              className="shadow-landing-sunken h-8 w-28 rounded-xl border-0 bg-transparent px-3 text-xs text-landing-ink shadow-none transition-shadow focus-visible:ring-1 focus-visible:ring-landing-ink-muted"
               aria-label="Hop depth"
             >
               <SelectValue placeholder="Hops" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent
+              data-landing
+              className="rounded-xl border-landing-canvas-border bg-landing-card-inner text-landing-ink"
+            >
               {[1, 2, 3].map((h) => (
-                <SelectItem key={h} value={String(h)}>
+                <SelectItem key={h} value={String(h)} className="rounded-lg text-xs">
                   {h} hop{h > 1 ? 's' : ''}
                 </SelectItem>
               ))}
@@ -355,7 +371,7 @@ export function CausalGraph({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-inverse-muted hover:bg-inverse-foreground/10 hover:text-inverse-foreground"
+                className="h-8 rounded-xl px-2.5 text-xs text-landing-ink-muted hover:bg-landing-card-inner hover:text-landing-ink"
                 onClick={() => {
                   setSelected(null)
                   onSelect(null)
@@ -371,10 +387,10 @@ export function CausalGraph({
               title={isFullscreen ? 'Exit full screen (Esc)' : 'Full screen'}
               aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
               className={cn(
-                'h-8 gap-1.5 px-2 text-xs transition-colors',
+                'h-8 gap-1.5 rounded-xl px-2.5 text-xs transition-all',
                 isFullscreen
-                  ? 'bg-inverse-foreground text-inverse hover:bg-inverse-foreground/90'
-                  : 'text-inverse-muted hover:bg-inverse-foreground/10 hover:text-inverse-foreground'
+                  ? 'shadow-landing-raised text-landing-ink'
+                  : 'text-landing-ink-muted hover:bg-landing-card-inner hover:text-landing-ink',
               )}
             >
               {isFullscreen ? (
@@ -393,15 +409,15 @@ export function CausalGraph({
         </div>
 
         {!hasRelations && visible.length > 0 && (
-          <p className="border-b border-inverse-border px-4 py-2 text-xs text-inverse-muted">
+          <p className="border-b border-landing-canvas-border px-4 py-2 text-xs text-landing-ink-muted">
             No causal edges built for this filing yet, so the {visible.length} nodes sit unconnected
             and traversal has nothing to follow.
           </p>
         )}
 
-        <div className={cn("relative min-w-0", isFullscreen ? "flex-1 h-[calc(100vh-53px)]" : "h-96")}>
+        <div className={cn('relative min-w-0', isFullscreen ? 'flex-1' : 'h-96')}>
           <ReactFlow
-            key={graph?.document_id ?? "causal-graph"}
+            key={graph?.document_id ?? 'causal-graph'}
             nodes={nodes}
             edges={initialEdges}
             nodeTypes={nodeTypes}
@@ -418,41 +434,46 @@ export function CausalGraph({
             fitViewOptions={{ padding: 0.18, maxZoom: 1 }}
             minZoom={0.05}
             proOptions={{ hideAttribution: true }}
-            style={{ background: 'var(--inverse)' }}
+            style={{ background: 'var(--landing-canvas)' }}
           >
-            <Background variant={BackgroundVariant.Dots} gap={22} size={1} color="var(--inverse-border)" />
+            <Background variant={BackgroundVariant.Dots} gap={22} size={1} color="var(--landing-canvas-border)" />
             <OnScreenControls
               isDraggable={isDraggable}
               onToggleDraggable={() => setIsDraggable((d) => !d)}
             />
           </ReactFlow>
           {visible.length === 0 && (
-            <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-inverse-muted">
+            <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-xs text-landing-ink-muted">
               No nodes match. Clear the search or turn footnote nodes back on.
             </p>
           )}
         </div>
       </div>
 
-      <aside className={cn("w-full min-w-0 shrink-0 bg-card p-6 lg:w-80", isFullscreen && "overflow-y-auto lg:h-full lg:w-96 border-t lg:border-t-0 lg:border-l border-border")}>
+      <aside
+        className={cn(
+          'w-full min-w-0 shrink-0 border-t border-landing-canvas-border p-5 lg:w-80 lg:border-t-0 lg:border-l',
+          isFullscreen && 'overflow-y-auto lg:h-full lg:w-96',
+        )}
+      >
         {node ? (
           <>
-            <p className="text-xs text-muted-foreground">Evidence</p>
-            <h3 className="mt-2 font-serif text-2xl leading-snug">
+            <Caption className="text-landing-ink-muted">Evidence</Caption>
+            <Heading className="mt-2 text-base font-semibold text-landing-ink">
               {node.type === 'metricNode' ? cleanName(node.data.name) : node.data.name}
-            </h3>
+            </Heading>
             {node.data.formatted_value && (
-              <p className="mt-3">
-                <Num size="lg" value={node.data.formatted_value.replace(/\$/g, '')} />
+              <p className="mt-2 font-mono text-lg font-semibold text-landing-ink tabular-nums">
+                {node.data.formatted_value.replace(/\$/g, '')}
               </p>
             )}
-            <blockquote className="mt-4 font-serif text-lg leading-snug">
+            <blockquote className="mt-3 rounded-xl bg-landing-card-inner p-3.5 text-xs leading-relaxed text-landing-ink-muted">
               {node.data.snippet || node.data.raw_text || node.data.summary || 'No excerpt recorded.'}
             </blockquote>
 
-            <Separator className="my-5 bg-border" />
+            <Separator className="my-4 bg-landing-canvas-border" />
 
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
               {[
                 ['Source', node.data.source_page != null ? `p ${node.data.source_page}` : EMPTY],
                 ['Statement', node.data.statement_type?.replace('_', ' ') ?? EMPTY],
@@ -460,44 +481,50 @@ export function CausalGraph({
                 ['Confidence', `${Math.round((node.data.confidence ?? 1) * 100)}%`],
               ].map(([k, v]) => (
                 <div key={k} className="contents">
-                  <dt className="text-muted-foreground">{k}</dt>
-                  <dd className="text-right">{v}</dd>
+                  <dt className="text-landing-ink-muted">{k}</dt>
+                  <dd className="text-right font-medium text-landing-ink tabular-nums">{v}</dd>
                 </div>
               ))}
             </dl>
 
             {subgraph && (
               <>
-                <Separator className="my-5 bg-border" />
-                <div className="flex items-baseline justify-between gap-4">
-                  <h4 className="text-sm font-medium">Linked nodes</h4>
-                  <Badge variant="secondary">
+                <Separator className="my-4 bg-landing-canvas-border" />
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-xs font-medium text-landing-ink">Linked nodes</span>
+                  <Badge
+                    variant="outline"
+                    className="rounded-full border-landing-canvas-border bg-landing-card-inner px-2 py-0.5 text-xs text-landing-ink-muted"
+                  >
                     {(subgraph.upstream_node_ids?.length ?? 0) + (subgraph.downstream_node_ids?.length ?? 0)}
                   </Badge>
                 </div>
                 <ScrollArea className="mt-2 max-h-60">
-                  <div className="flex flex-col">
+                  <div className="flex flex-col divide-y divide-landing-canvas-border">
                     {[...(subgraph.upstream_node_ids ?? []), ...(subgraph.downstream_node_ids ?? [])].map((peerId) => {
                       const peer = (subgraph.nodes ?? []).find((n) => n.id === peerId)
                       return (
-                        <Button
+                        <button
                           key={peerId}
-                          variant="ghost"
+                          type="button"
                           onClick={() => {
                             setSelected(peerId)
                             onSelect(peerId)
                           }}
-                          className="h-auto w-full items-baseline justify-between rounded-none border-b border-hairline px-2 py-2 text-left font-normal hover:bg-muted/50"
+                          className="flex w-full cursor-pointer items-baseline justify-between gap-2 px-2 py-2 text-left text-xs transition-colors hover:bg-landing-card-inner/60"
                         >
-                          <span className="min-w-0 flex-1 truncate">
+                          <span className="min-w-0 flex-1 truncate text-landing-ink">
                             {peer ? cleanName(peer.data.name) : peerId}
                           </span>
-                          <Num className="ml-2 shrink-0" value={peer?.data.formatted_value?.replace(/\$/g, '') ?? EMPTY} />
-                        </Button>
+                          <Num
+                            className="shrink-0 text-landing-ink-muted"
+                            value={peer?.data.formatted_value?.replace(/\$/g, '') ?? EMPTY}
+                          />
+                        </button>
                       )
                     })}
                     {(subgraph.upstream_node_ids?.length ?? 0) + (subgraph.downstream_node_ids?.length ?? 0) === 0 && (
-                      <p className="py-2 text-sm text-muted-foreground">
+                      <p className="py-2 text-xs text-landing-ink-muted">
                         Nothing links to this node yet.
                       </p>
                     )}
@@ -508,15 +535,17 @@ export function CausalGraph({
           </>
         ) : (
           <div className="flex h-full flex-col justify-center">
-            <p className="text-xs text-muted-foreground">Evidence</p>
-            <h3 className="mt-2 font-serif text-2xl leading-snug">Select a node</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Pick any node on the canvas to read the page it came from, its confidence and the
+            <Caption className="text-landing-ink-muted">Evidence</Caption>
+            <Heading className="mt-2 text-base font-semibold text-landing-ink">
+              Select a node
+            </Heading>
+            <p className="mt-1.5 text-xs leading-relaxed text-landing-ink-muted">
+              Pick any node on the canvas to read the page it came from, its confidence, and the
               nodes linked to it.
             </p>
           </div>
         )}
       </aside>
-    </div>
+    </SurfaceCard>
   )
 }

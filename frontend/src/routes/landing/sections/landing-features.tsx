@@ -43,7 +43,7 @@ export function LandingFeatures() {
                     <CheckCircle2 className="size-4 text-landing-accent" aria-hidden="true" />
                     Operating Cash Flow
                   </span>
-                  <span className="rounded-md bg-landing-card px-2 py-0.5 text-xs text-landing-ink-muted">
+                  <span className="shadow-landing-sunken rounded-md px-2 py-0.5 text-xs text-landing-ink-muted">
                     Page 42
                   </span>
                 </div>
@@ -80,22 +80,22 @@ export function LandingFeatures() {
                   <span className="text-xs text-landing-ink-muted">FY25</span>
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-1.5 text-center">
-                  <div className="rounded-xl bg-landing-card py-2">
+                  <div className="shadow-landing-sunken rounded-xl py-2">
                     <p className="text-xs font-semibold text-landing-ink">48</p>
                     <p className="text-xs text-landing-ink-muted">Nodes</p>
                   </div>
-                  <div className="rounded-xl bg-landing-card py-2">
+                  <div className="shadow-landing-sunken rounded-xl py-2">
                     <p className="text-xs font-semibold text-landing-ink">14</p>
                     <p className="text-xs text-landing-ink-muted">Tables</p>
                   </div>
-                  <div className="rounded-xl bg-landing-card py-2">
+                  <div className="shadow-landing-sunken rounded-xl py-2">
                     <p className="text-xs font-semibold text-landing-ink">3</p>
                     <p className="text-xs text-landing-ink-muted">Hops</p>
                   </div>
                 </div>
               </div>
 
-              <div className="absolute top-10 -right-2 flex items-center gap-2.5 rounded-2xl border border-landing-canvas-border bg-landing-card-inner px-3.5 py-2.5 text-left shadow-md sm:right-0">
+              <div className="shadow-landing-raised absolute top-10 -right-2 flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5 text-left sm:right-0">
                 <span className="flex size-7 items-center justify-center rounded-full bg-landing-accent-soft text-landing-accent">
                   <GitBranch className="size-3.5" aria-hidden="true" />
                 </span>
@@ -123,18 +123,18 @@ export function LandingFeatures() {
                   <span className="text-xs font-medium text-landing-ink">Disclosure Q&amp;A</span>
                 </div>
                 <div className="mt-2.5 space-y-2">
-                  <div className="rounded-xl bg-landing-card px-2.5 py-2">
+                  <div className="shadow-landing-sunken rounded-xl px-2.5 py-2">
                     <p className="text-xs font-medium text-landing-ink">Net Debt Drivers</p>
                     <p className="text-xs text-landing-ink-muted">Grounded answer</p>
                   </div>
-                  <div className="rounded-xl bg-landing-card px-2.5 py-2">
+                  <div className="shadow-landing-sunken rounded-xl px-2.5 py-2">
                     <p className="text-xs font-medium text-landing-ink">Margin Expansion</p>
                     <p className="text-xs text-landing-ink-muted">Verified source</p>
                   </div>
                 </div>
               </div>
 
-              <div className="absolute top-10 -right-2 flex items-center gap-2 rounded-full border border-landing-canvas-border bg-landing-card-inner px-3 py-1.5 shadow-md sm:right-0">
+              <div className="shadow-landing-raised absolute top-10 -right-2 flex items-center gap-2 rounded-full px-3 py-1.5 sm:right-0">
                 <FileText className="size-3.5 text-landing-accent" aria-hidden="true" />
                 <span className="font-mono text-xs font-medium text-landing-ink">Page 42</span>
               </div>
@@ -164,7 +164,7 @@ export function LandingFeatures() {
 
                 <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                   {METRIC_TILES.map((tile) => (
-                    <div key={tile.label} className="rounded-xl bg-landing-card px-2 py-2.5">
+                    <div key={tile.label} className="shadow-landing-sunken rounded-xl px-2 py-2.5">
                       <p className="text-xs text-landing-ink-muted">{tile.label}</p>
                       <p className="mt-0.5 font-mono text-base font-semibold text-landing-ink">
                         {tile.value}

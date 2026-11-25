@@ -11,6 +11,8 @@ import {
 } from "recharts";
 import { api } from "@/api/client";
 import { SurfaceButton } from "@/components/app/action-buttons";
+import { KpiCard } from "@/components/app/kpi-card";
+import { SurfaceCard } from "@/components/app/surface-card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   ChartContainer,
@@ -32,7 +34,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatCount, formatDate } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import { useSession } from "@/state/session";
 import type { GraphResponseDto } from "@/types";
 
@@ -191,40 +192,20 @@ export function Overview() {
       {/* Top 3 KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {kpis.map((item) => (
-          <div
+          <KpiCard
             key={item.label}
-            className="rounded-xl border border-landing-canvas-border bg-landing-card p-4"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-medium text-landing-ink-muted">
-                {item.label}
-              </span>
-              <span
-                className={cn(
-                  "inline-flex items-center text-[11px] leading-none font-medium",
-                  item.positive
-                    ? "text-landing-ink"
-                    : "text-landing-ink-muted",
-                )}
-              >
-                {item.badge}
-              </span>
-            </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-2xl font-semibold tracking-tight text-landing-ink tabular-nums">
-                {item.value}
-              </span>
-              <span className="truncate text-xs text-landing-ink-muted">
-                {item.sub}
-              </span>
-            </div>
-          </div>
+            label={item.label}
+            value={item.value}
+            sub={item.sub}
+            badge={item.badge}
+            positive={item.positive}
+          />
         ))}
       </div>
 
       {/* Charts Row: Top Balances & Filing Coverage */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-        <section className="rounded-xl border border-landing-canvas-border bg-landing-card p-5 lg:col-span-3">
+        <SurfaceCard as="section" className="p-5 lg:col-span-3">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-medium text-landing-ink-muted">
@@ -304,9 +285,9 @@ export function Overview() {
               </EmptyHeader>
             </Empty>
           )}
-        </section>
+        </SurfaceCard>
 
-        <section className="flex flex-col justify-between rounded-xl border border-landing-canvas-border bg-landing-card p-5 lg:col-span-2">
+        <SurfaceCard as="section" className="flex flex-col justify-between p-5 lg:col-span-2">
           <div className="flex items-center justify-between gap-2">
             <div>
               <p className="text-sm font-medium text-landing-ink">
@@ -371,11 +352,11 @@ export function Overview() {
               </EmptyHeader>
             </Empty>
           )}
-        </section>
+        </SurfaceCard>
       </div>
 
       {/* Runtime & Configuration Strip */}
-      <section className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-landing-canvas-border bg-landing-card px-5 py-3.5 text-xs">
+      <SurfaceCard as="section" className="flex flex-wrap items-center justify-between gap-4 px-5 py-3.5 text-xs">
         <dl className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-landing-ink-muted">
           {[
             ["Adapter", health?.backends_available?.join(", ") ?? "None"],
@@ -395,7 +376,7 @@ export function Overview() {
         >
           Configure
         </Link>
-      </section>
+      </SurfaceCard>
 
       {health === null && (
         <Alert variant="destructive" className="rounded-xl">

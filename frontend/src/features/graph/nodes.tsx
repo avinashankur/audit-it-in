@@ -22,10 +22,10 @@ function Shell({
   return (
     <div
       className={cn(
-        'relative flex h-10 w-56 items-center gap-2 rounded-none border px-4 text-xs whitespace-nowrap transition-opacity duration-200',
+        'relative flex h-10 w-56 items-center gap-2 rounded-xl px-3.5 text-xs whitespace-nowrap transition-all duration-200',
         selected
-          ? 'border-inverse-foreground bg-inverse-foreground font-semibold text-inverse'
-          : 'border-inverse-foreground/45 bg-inverse text-inverse-foreground',
+          ? 'bg-landing-ink font-semibold text-landing-canvas shadow-md'
+          : 'shadow-landing-raised text-landing-ink',
         dimmed && 'opacity-20',
       )}
     >
@@ -57,7 +57,7 @@ export function DisclosureNode({ data, selected }: { data: AuditNodeData; select
     <Shell selected={selected} dimmed={data.dimmed}>
       <span
         aria-hidden="true"
-        className={cn('size-1.5 shrink-0 rounded-none', selected ? 'bg-brand' : 'bg-brand/70')}
+        className={cn('size-1.5 shrink-0 rounded-full', selected ? 'bg-landing-accent' : 'bg-landing-ink-muted')}
       />
       <span className="truncate">{data.name}</span>
       {data.source_page != null && (

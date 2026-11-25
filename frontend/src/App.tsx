@@ -23,7 +23,7 @@ function Shell() {
         style={{ '--sidebar-width': '14rem' } as React.CSSProperties}
       >
         <AppSidebar />
-        <SidebarInset className="min-h-0 min-w-0 overflow-hidden bg-landing-canvas md:my-2.5 md:mr-2.5 md:rounded-2xl md:border md:border-landing-canvas-border md:shadow-xs md:peer-data-[variant=inset]:rounded-2xl">
+        <SidebarInset className="min-h-0 min-w-0 overflow-hidden bg-landing-canvas md:my-2.5 md:mr-2.5 md:rounded-xl md:border md:border-landing-canvas-border md:shadow-xs md:peer-data-[variant=inset]:rounded-xl">
           <div className="shrink-0 px-5 pt-4 lg:px-8 lg:pt-5">
             <SidebarTrigger className="size-8 rounded-lg text-landing-ink-muted hover:bg-landing-card hover:text-landing-ink" />
           </div>

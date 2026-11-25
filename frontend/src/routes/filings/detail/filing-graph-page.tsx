@@ -4,6 +4,7 @@ import { api } from '@/api/client'
 import { CausalGraph } from '@/features/graph/causal-graph'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
+import { SurfaceCard } from '@/components/app/surface-card'
 import { useSession } from '@/state/session'
 import type { GraphResponseDto, SubgraphResponseDto } from '@/types'
 
@@ -54,8 +55,8 @@ export function FilingGraph() {
 
   if (failed) {
     return (
-      <Alert variant="destructive">
-        <AlertDescription>
+      <Alert variant="destructive" className="rounded-xl">
+        <AlertDescription className="text-xs">
           The graph for this filing could not be loaded. Re-open it from the filings library.
         </AlertDescription>
       </Alert>
@@ -64,14 +65,14 @@ export function FilingGraph() {
 
   if (!graph) {
     return (
-      <div className="flex flex-col border border-border lg:flex-row">
-        <Skeleton className="h-96 w-full rounded-none bg-inverse lg:flex-1" />
-        <div className="flex w-full flex-col gap-3 bg-card p-6 lg:w-80">
+      <SurfaceCard className="flex flex-col overflow-hidden lg:flex-row">
+        <Skeleton className="h-96 w-full rounded-none bg-landing-card-inner lg:flex-1" />
+        <div className="flex w-full flex-col gap-3 p-6 lg:w-80">
           {[0, 1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-4 w-full" />
+            <Skeleton key={i} className="h-4 w-full rounded-lg bg-landing-card-inner" />
           ))}
         </div>
-      </div>
+      </SurfaceCard>
     )
   }
 

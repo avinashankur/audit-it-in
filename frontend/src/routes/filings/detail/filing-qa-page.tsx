@@ -1,18 +1,22 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
+import { ChevronDown, Plus, Send, Sparkles } from 'lucide-react'
 import { api } from '@/api/client'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { SurfaceButton } from '@/components/app/action-buttons'
 import { FlowChain } from '@/components/app/inverse-panel'
 import { Num } from '@/components/app/num'
+import { SurfaceCard } from '@/components/app/surface-card'
+import { Badge } from '@/components/ui/badge'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cleanName } from '@/features/graph/nodes'
-import { EMPTY } from '@/lib/format'
-import { useSession } from '@/state/session'
 import { formatTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { useSession } from '@/state/session'
 import type { AuditCitation, CausalGraphPath } from '@/types'
 
 interface Turn {
@@ -23,6 +27,7 @@ interface Turn {
   citations: AuditCitation[]
   at: string
   pending?: boolean
+  error?: string
   provider?: string
   latencyMs?: number
 }
@@ -39,21 +44,24 @@ function formatInline(text: string): ReactNode[] {
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return (
-        <strong key={i} className="font-semibold text-foreground">
+        <strong key={i} className="font-semibold text-landing-ink">
           {part.slice(2, -2)}
         </strong>
       )
     }
     if (part.startsWith('*') && part.endsWith('*')) {
       return (
-        <em key={i} className="italic text-muted-foreground">
+        <em key={i} className="italic text-landing-ink-muted">
           {part.slice(1, -1)}
         </em>
       )
     }
     if (part.startsWith('`') && part.endsWith('`')) {
       return (
-        <code key={i} className="rounded-none bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
+        <code
+          key={i}
+          className="rounded-md bg-landing-card-inner px-1.5 py-0.5 font-mono text-xs text-landing-ink"
+        >
           {part.slice(1, -1)}
         </code>
       )
@@ -67,7 +75,7 @@ function MarkdownAnswer({ content }: { content: string }) {
   const rawBlocks = content.split(/\n\s*\n/)
 
   return (
-    <div className="space-y-3 font-sans text-sm sm:text-base leading-relaxed text-foreground/90">
+    <div className="space-y-3 text-sm leading-relaxed text-landing-ink">
       {rawBlocks.map((block, idx) => {
         const trimmed = block.trim()
         if (!trimmed) return null
@@ -78,7 +86,7 @@ function MarkdownAnswer({ content }: { content: string }) {
 
         if (isBulletList) {
           return (
-            <ul key={idx} className="my-2.5 list-disc space-y-1.5 pl-5 text-sm sm:text-base leading-relaxed">
+            <ul key={idx} className="my-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed">
               {lines.map((l, liIdx) => (
                 <li key={liIdx}>{formatInline(l.replace(/^\s*[-*•]\s+/, ''))}</li>
               ))}
@@ -88,7 +96,7 @@ function MarkdownAnswer({ content }: { content: string }) {
 
         if (isNumberedList) {
           return (
-            <ol key={idx} className="my-2.5 list-decimal space-y-1.5 pl-5 text-sm sm:text-base leading-relaxed">
+            <ol key={idx} className="my-2 list-decimal space-y-1.5 pl-5 text-sm leading-relaxed">
               {lines.map((l, liIdx) => (
                 <li key={liIdx}>{formatInline(l.replace(/^\s*\d+\.\s+/, ''))}</li>
               ))}
@@ -99,7 +107,10 @@ function MarkdownAnswer({ content }: { content: string }) {
         if (trimmed.startsWith('### ') || trimmed.startsWith('## ') || trimmed.startsWith('# ')) {
           const headingText = trimmed.replace(/^#+\s*/, '')
           return (
-            <h4 key={idx} className="pt-2 font-medium text-foreground text-sm uppercase tracking-wide">
+            <h4
+              key={idx}
+              className="pt-2 text-xs font-semibold tracking-wider text-landing-ink-muted uppercase"
+            >
               {formatInline(headingText)}
             </h4>
           )
@@ -109,7 +120,7 @@ function MarkdownAnswer({ content }: { content: string }) {
           return (
             <div
               key={idx}
-              className="border-l-2 border-border bg-muted/20 px-3 py-2 text-xs sm:text-sm text-muted-foreground my-2"
+              className="my-2 rounded-lg border-l-2 border-landing-accent bg-landing-card-inner px-3 py-2 text-xs text-landing-ink-muted"
             >
               {lines.map((l, lIdx) => (
                 <p key={lIdx} className={lIdx > 0 ? 'mt-1' : ''}>
@@ -135,15 +146,23 @@ function MarkdownAnswer({ content }: { content: string }) {
   )
 }
 
+function friendlyError(err: unknown): string {
+  if (err instanceof Error) {
+    if (err.message === 'Failed to fetch') {
+      return 'Could not reach the reasoning engine. Check that the backend API is running.'
+    }
+    return err.message
+  }
+  return 'The reasoning engine could not be reached.'
+}
+
 export function FilingQA() {
   const { id } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { documents, settings } = useSession()
-  const filing = documents.find((d) => d.document_id === id)
+  const { settings } = useSession()
   const [turns, setTurns] = useState<Turn[]>([])
   const [query, setQuery] = useState('')
   const [streaming, setStreaming] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const abort = useRef<AbortController | null>(null)
   const endRef = useRef<HTMLDivElement>(null)
   const queryParamProcessed = useRef(false)
@@ -160,7 +179,6 @@ export function FilingQA() {
     abort.current?.abort()
     const c = new AbortController()
     abort.current = c
-    setError(null)
     setQuery('')
 
     const turnId = `t${Date.now()}`
@@ -202,10 +220,12 @@ export function FilingQA() {
       )
     } catch (err) {
       if (err instanceof Error && (err.name === 'AbortError' || c.signal.aborted)) return
-      setError(err instanceof Error ? err.message : 'The reasoning engine could not be reached.')
-      patch((t) => ({ ...t, pending: false }))
+      patch((t) => ({ ...t, pending: false, error: friendlyError(err) }))
     } finally {
-      if (!c.signal.aborted) setStreaming(false)
+      if (!c.signal.aborted) {
+        patch((t) => (t.pending ? { ...t, pending: false } : t))
+        setStreaming(false)
+      }
     }
   }
 
@@ -219,152 +239,150 @@ export function FilingQA() {
   }, [searchParams])
 
   return (
-    <div className="flex flex-col gap-10 lg:flex-row">
-      <div className="min-w-0 flex-1">
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {turns.length === 0 && (
-          <div className="border-t border-foreground py-6">
-            <p className="text-sm text-muted-foreground">
-              Answers come only from ingested filings, with the causal chain and the page cited.
+    <div className="flex max-w-3xl flex-col gap-6">
+      {turns.length === 0 && (
+        <SurfaceCard className="overflow-hidden">
+          <div className="px-5 py-4">
+            <p className="text-xs leading-relaxed text-landing-ink-muted">
+              Ask a question about this filing. Every answer is grounded in the document with
+              exact page citations.
               {settings.provider === 'Offline Grounded' &&
-                ' Offline grounded mode cites without a model call.'}
+                ' Running in Offline Grounded mode with no API key required.'}
             </p>
-            <div className="mt-5 flex flex-col">
-              {STARTERS.map((s) => (
-                <Button
-                  key={s}
-                  variant="ghost"
-                  onClick={() => void ask(s)}
-                  className="h-auto w-full items-center justify-between rounded-none border-t border-hairline px-2 py-3 text-left font-normal hover:bg-muted/50"
-                >
-                  <span>{s}</span>
-                  <span aria-hidden="true" className="text-muted-foreground">
-                    +
-                  </span>
-                </Button>
-              ))}
+          </div>
+
+          <div className="divide-y divide-landing-canvas-border border-t border-landing-canvas-border">
+            {STARTERS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => void ask(s)}
+                className="flex w-full cursor-pointer items-center justify-between gap-3 px-5 py-3 text-left text-xs font-medium text-landing-ink transition-colors hover:bg-landing-card-inner/60"
+              >
+                <span>{s}</span>
+                <Plus className="size-3.5 shrink-0 text-landing-ink-muted" aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        </SurfaceCard>
+      )}
+
+      {turns.map((t) => (
+        <article key={t.id} className="space-y-4">
+          {/* User Message */}
+          <div className="flex justify-end">
+            <div className="shadow-landing-sunken max-w-xl rounded-2xl px-4 py-2.5 text-sm font-medium text-landing-ink">
+              {t.question}
             </div>
           </div>
-        )}
 
-        {turns.map((t) => (
-          <article key={t.id} className="border-t border-foreground py-6 first:border-t-0">
-            <h2 className="font-serif text-2xl leading-snug lg:text-3xl text-foreground">{t.question}</h2>
-            <div className="mt-4 max-w-prose">
-              {t.answer ? (
-                <MarkdownAnswer content={t.answer} />
-              ) : t.pending ? (
-                <div className="flex flex-col gap-2 py-2">
-                  <Skeleton className="h-4 w-full rounded-none" />
-                  <Skeleton className="h-4 w-5/6 rounded-none" />
-                  <Skeleton className="h-4 w-2/3 rounded-none" />
-                </div>
-              ) : (
-                <span className="text-sm text-muted-foreground">The engine returned no answer.</span>
-              )}
-            </div>
+          {/* Assistant Response */}
+          <div className="space-y-3 pl-1">
+            {t.error ? (
+              <p className="text-xs text-destructive">{t.error}</p>
+            ) : t.answer ? (
+              <MarkdownAnswer content={t.answer} />
+            ) : t.pending ? (
+              <div className="space-y-2 py-1">
+                <p className="text-xs text-landing-ink-muted">
+                  Searching filing and synthesizing answer...
+                </p>
+                <Skeleton className="h-3.5 w-full rounded-lg bg-landing-card" />
+                <Skeleton className="h-3.5 w-5/6 rounded-lg bg-landing-card" />
+                <Skeleton className="h-3.5 w-2/3 rounded-lg bg-landing-card" />
+              </div>
+            ) : (
+              <p className="text-xs text-landing-ink-muted">
+                No matching evidence was found for this query.
+              </p>
+            )}
 
             {t.chain.length > 0 && (
-              <div className="mt-5">
+              <div className="pt-1">
+                <p className="mb-2 text-xs font-medium text-landing-ink-muted">Causal chain</p>
                 <FlowChain steps={t.chain.map(cleanName)} />
               </div>
             )}
 
             {t.citations.length > 0 && (
-              <div className="mt-5">
-                <p className="text-xs text-muted-foreground">Source evidence</p>
-                <ul className="mt-1">
-                  {t.citations.map((c) => (
-                    <li
-                      key={c.citation_id ?? `${c.page_number}-${c.snippet.slice(0, 8)}`}
-                      className="flex items-baseline gap-4 border-t border-hairline py-2 text-sm"
-                    >
-                      <span className="min-w-0 flex-1 truncate" title={c.snippet}>
-                        {c.snippet.slice(0, 160)}
-                      </span>
-                      <Num value={`p ${c.page_number}`} muted />
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <Collapsible className="pt-1">
+                <CollapsibleTrigger className="inline-flex cursor-pointer items-center gap-1.5 text-xs font-medium text-landing-ink-muted transition-colors hover:text-landing-ink [&[data-state=open]>svg]:rotate-180">
+                  <span>Source evidence ({t.citations.length})</span>
+                  <ChevronDown className="size-3.5 transition-transform" aria-hidden="true" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <ul className="mt-2 divide-y divide-landing-canvas-border rounded-xl border border-landing-canvas-border bg-landing-card px-3.5">
+                    {t.citations.map((c) => (
+                      <li
+                        key={c.citation_id ?? `${c.page_number}-${c.snippet.slice(0, 8)}`}
+                        className="flex items-center justify-between gap-4 py-2.5 text-xs"
+                      >
+                        <span
+                          className="min-w-0 flex-1 truncate text-landing-ink"
+                          title={c.snippet}
+                        >
+                          {c.snippet.slice(0, 160)}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className="shrink-0 rounded-full border-landing-canvas-border px-2 py-0.5 font-mono text-xs text-landing-ink-muted"
+                        >
+                          p. {c.page_number}
+                        </Badge>
+                      </li>
+                    ))}
+                  </ul>
+                </CollapsibleContent>
+              </Collapsible>
             )}
 
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-landing-ink-muted">
               <Num value={t.at} />
-              <span>·</span>
-              <span className={cn(t.provider === 'Gemini' && 'font-medium text-brand')}>
-                {t.provider ? `Synthesized by ${t.provider}` : settings.provider}
+              <span className={cn(t.provider === 'Gemini' && 'font-medium text-landing-accent')}>
+                {t.provider ?? settings.provider}
               </span>
-              {t.latencyMs != null && (
-                <>
-                  <span>·</span>
-                  <Num value={`${Math.round(t.latencyMs)}ms`} />
-                </>
-              )}
+              {t.latencyMs != null && <Num value={`${Math.round(t.latencyMs)}ms`} />}
             </div>
-          </article>
-        ))}
+          </div>
+        </article>
+      ))}
 
-        <div className="sticky bottom-3 z-10 flex gap-2 bg-background py-2">
-          <form
-            className="flex min-w-0 flex-1 gap-2"
-            onSubmit={(e) => {
-              e.preventDefault()
-              void ask(query)
-            }}
-          >
-            <label htmlFor="audit-query" className="sr-only">
-              Ask about a balance, a change, or a cause
-            </label>
-            <Input
+      <div ref={endRef} />
+
+      {/* Sticky Composer */}
+      <div className="sticky bottom-2 z-10 pt-2">
+        <form
+          className="flex items-center gap-2"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void ask(query)
+          }}
+        >
+          <label htmlFor="audit-query" className="sr-only">
+            Ask about a balance, a change, or a cause
+          </label>
+          <div className="shadow-landing-sunken flex h-11 min-w-0 flex-1 items-center gap-2.5 rounded-xl px-3.5 transition-shadow focus-within:ring-1 focus-within:ring-landing-ink-muted">
+            <Sparkles className="size-3.5 shrink-0 text-landing-accent" aria-hidden="true" />
+            <input
               id="audit-query"
               name="audit_query"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Ask about a balance, a change, or a cause"
               disabled={streaming}
-              className="h-11 flex-1 bg-card"
+              className="w-full min-w-0 bg-transparent text-xs text-landing-ink outline-none placeholder:text-landing-ink-muted disabled:opacity-50"
             />
-            <Button type="submit" size="lg" disabled={!query.trim() || streaming}>
-              {streaming ? 'Answering' : 'Ask'}
-            </Button>
-          </form>
-        </div>
+          </div>
+          <SurfaceButton
+            type="submit"
+            className="h-11 px-4"
+            disabled={!query.trim() || streaming}
+          >
+            <Send className="size-3.5" aria-hidden="true" />
+            <span>{streaming ? 'Answering...' : 'Ask'}</span>
+          </SurfaceButton>
+        </form>
       </div>
-
-      <aside className="w-full min-w-0 shrink-0 lg:w-64">
-        <Separator className="mb-4 bg-foreground" />
-        <h2 className="font-serif text-lg">This filing</h2>
-        <dl className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
-          <dt className="text-muted-foreground">Document</dt>
-          <dd className="truncate text-right" title={filing?.filename}>
-            {filing?.tables_count != null ? `${filing.tables_count} tables` : '—'}
-          </dd>
-          <dt className="text-muted-foreground">Metrics</dt>
-          <dd className="text-right"><Num value={filing?.metric_nodes_count ?? EMPTY} /></dd>
-          <dt className="text-muted-foreground">Edges</dt>
-          <dd className="text-right">
-            <Num muted={!filing?.causal_edges_count} value={filing?.causal_edges_count ?? EMPTY} />
-          </dd>
-          <dt className="text-muted-foreground">Reasoning</dt>
-          <dd className={cn('text-right', settings.provider === 'Gemini' && 'font-medium text-brand')}>
-            {settings.provider}
-          </dd>
-          {settings.provider !== 'Offline Grounded' && (
-            <>
-              <dt className="text-muted-foreground">Key source</dt>
-              <dd className="text-right text-xs text-muted-foreground">
-                {settings.apiKey ? 'Browser header' : 'Server environment'}
-              </dd>
-            </>
-          )}
-        </dl>
-      </aside>
     </div>
   )
 }
