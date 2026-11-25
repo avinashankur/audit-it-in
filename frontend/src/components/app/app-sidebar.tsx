@@ -32,7 +32,7 @@ function NavItem({
         end={end}
         className={({ isActive }) =>
           cn(
-            'flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-[0.75rem] font-medium transition-all',
+            'flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-medium transition-all',
             isActive
               ? 'shadow-landing-raised text-landing-ink'
               : 'text-landing-ink-muted hover:bg-landing-card-inner/50 hover:text-landing-ink',
@@ -71,7 +71,7 @@ export function AppSidebar() {
       collapsible="offcanvas"
       className="bg-sidebar text-landing-ink"
     >
-      <SidebarHeader className="px-1 pt-5 pb-3">
+      <SidebarHeader className="px-3 pt-5 pb-3 md:px-1">
         <Link
           to="/"
           className="inline-flex w-fit items-center gap-2 rounded-lg px-2 py-1 text-landing-ink transition-opacity hover:opacity-80"
@@ -87,7 +87,7 @@ export function AppSidebar() {
         </Link>
       </SidebarHeader>
 
-      <SidebarContent className="gap-0 px-1 py-4">
+      <SidebarContent className="gap-0 px-3 py-4 md:px-1">
         <SidebarGroup className="p-0">
           <Caption className="px-2 pb-2 text-landing-ink-muted">Workspace</Caption>
           <SidebarMenu className="gap-1">
@@ -101,7 +101,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="gap-2.5 px-1 py-3">
+      <SidebarFooter className="gap-2.5 px-3 py-3 md:px-1">
         <SidebarMenu className="gap-1">
           <NavItem to="/settings" icon={Settings}>
             Settings
