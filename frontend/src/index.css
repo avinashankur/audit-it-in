@@ -9,8 +9,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: 'Gambarino';
+  src: url('/fonts/Gambarino-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme inline {
   --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-landing: 'Plus Jakarta Sans', 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-hero: 'Gambarino', Georgia, 'Times New Roman', serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, monospace;
   --font-serif: 'Instrument Serif', Georgia, 'Times New Roman', serif;
 
@@ -58,14 +68,30 @@
 
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-landing-canvas: var(--landing-canvas);
+  --color-landing-canvas-border: var(--landing-canvas-border);
+  --color-landing-card: var(--landing-card);
+  --color-landing-card-inner: var(--landing-card-inner);
+  --color-landing-accent: var(--landing-accent);
+  --color-landing-accent-soft: var(--landing-accent-soft);
+  --color-landing-ink: var(--landing-ink);
+  --color-landing-ink-muted: var(--landing-ink-muted);
+  --color-landing-foreground: var(--landing-foreground);
+  --color-landing-muted: var(--landing-muted);
+  --color-landing-surface: var(--landing-surface);
+  --color-landing-surface-hover: var(--landing-surface-hover);
+  --color-landing-border: var(--landing-border);
+  --color-landing-border-subtle: var(--landing-border-subtle);
+  --color-landing-cta: var(--landing-cta);
+  --color-landing-cta-foreground: var(--landing-cta-foreground);
 
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-2xl: 0px;
-  --radius-3xl: 0px;
-  --radius-4xl: 0px;
+  --radius-sm: var(--radius-sm-val, 0px);
+  --radius-md: var(--radius-md-val, 0px);
+  --radius-lg: var(--radius-lg-val, 0px);
+  --radius-xl: var(--radius-xl-val, 0px);
+  --radius-2xl: var(--radius-2xl-val, 0px);
+  --radius-3xl: var(--radius-3xl-val, 0px);
+  --radius-4xl: var(--radius-4xl-val, 0px);
 }
 
 :root {
@@ -102,6 +128,35 @@
   --hairline: color-mix(in srgb, var(--border) 55%, var(--background));
   --brand: #0284c7;
   --brand-foreground: #ffffff;
+  --landing-canvas: #ffffff;
+  --landing-canvas-border: #e2e8f0;
+  --landing-card: #f5f7fa;
+  --landing-card-inner: #ffffff;
+  --landing-accent: #0284c7;
+  --landing-accent-soft: rgba(2, 132, 199, 0.1);
+  --landing-ink: #0f172a;
+  --landing-ink-muted: #64748b;
+  --landing-foreground: #ffffff;
+  --landing-muted: rgba(255, 255, 255, 0.85);
+  --landing-surface: rgba(255, 255, 255, 0.15);
+  --landing-surface-hover: rgba(255, 255, 255, 0.26);
+  --landing-border: rgba(255, 255, 255, 0.25);
+  --landing-border-subtle: rgba(255, 255, 255, 0.2);
+  --landing-cta: #ffffff;
+  --landing-cta-foreground: #0f172a;
+  --landing-sky-top: #3c9ef0;
+  --landing-sky-mid: #57b1f7;
+  --landing-sky-bottom: #74c2fb;
+  --landing-sky-glow: rgba(214, 238, 255, 0.92);
+  --landing-sky-glow-mid: rgba(162, 214, 255, 0.55);
+  --landing-sky-bloom: rgba(118, 194, 255, 0.5);
+  --landing-sky-bloom-soft: rgba(118, 194, 255, 0.45);
+  --landing-sky-fade: rgba(72, 166, 245, 0);
+  --landing-hero-gradient:
+    radial-gradient(65% 55% at 50% 72%, var(--landing-sky-glow) 0%, var(--landing-sky-glow-mid) 45%, var(--landing-sky-fade) 78%),
+    radial-gradient(50% 45% at 15% 18%, var(--landing-sky-bloom) 0%, var(--landing-sky-fade) 70%),
+    radial-gradient(45% 45% at 88% 22%, var(--landing-sky-bloom-soft) 0%, var(--landing-sky-fade) 70%),
+    linear-gradient(180deg, var(--landing-sky-top) 0%, var(--landing-sky-mid) 48%, var(--landing-sky-bottom) 100%);
 
   --sidebar: #ededed;
   --sidebar-foreground: #0e0e0e;
@@ -154,6 +209,30 @@
   --sidebar-ring: #f2f2f2;
   --brand: #38bdf8;
   --brand-foreground: #082f49;
+  --landing-canvas: #161616;
+  --landing-canvas-border: #2e2e2e;
+  --landing-card: #1e1e1e;
+  --landing-card-inner: #262626;
+  --landing-accent: #38bdf8;
+  --landing-accent-soft: rgba(56, 189, 248, 0.14);
+  --landing-ink: #fafafa;
+  --landing-ink-muted: #a3a3a3;
+  --landing-foreground: #fafafa;
+  --landing-muted: rgba(250, 250, 250, 0.78);
+  --landing-surface: rgba(250, 250, 250, 0.08);
+  --landing-surface-hover: rgba(250, 250, 250, 0.16);
+  --landing-border: rgba(250, 250, 250, 0.18);
+  --landing-border-subtle: rgba(250, 250, 250, 0.12);
+  --landing-cta: #fafafa;
+  --landing-cta-foreground: #161616;
+  --landing-sky-top: #0f3a66;
+  --landing-sky-mid: #165694;
+  --landing-sky-bottom: #1e6cb5;
+  --landing-sky-glow: rgba(56, 189, 248, 0.35);
+  --landing-sky-glow-mid: rgba(30, 108, 181, 0.25);
+  --landing-sky-bloom: rgba(56, 189, 248, 0.22);
+  --landing-sky-bloom-soft: rgba(56, 189, 248, 0.18);
+  --landing-sky-fade: rgba(15, 58, 102, 0);
 
   color-scheme: dark;
 }
@@ -161,7 +240,24 @@
 @layer base {
   *, *::before, *::after {
     @apply border-border outline-ring/50;
+  }
+
+  :not([data-landing], [data-landing] *),
+  :not([data-landing], [data-landing] *)::before,
+  :not([data-landing], [data-landing] *)::after {
     border-radius: 0 !important;
+  }
+
+  [data-landing] {
+    font-family: var(--font-landing);
+    --radius-lg-val: 0.75rem;
+    --radius-xl-val: 1rem;
+    --radius-2xl-val: 1.25rem;
+    --radius-3xl-val: 1.75rem;
+  }
+
+  .bg-landing-hero {
+    background: var(--landing-hero-gradient);
   }
 
   body {
