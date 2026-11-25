@@ -7,14 +7,15 @@ import { StatusBar } from '@/components/app/page-header'
 import { SessionProvider, useSession } from '@/state/session'
 import { ThemeProvider } from '@/components/theme-provider'
 import { formatTime, plural } from '@/lib/format'
-import { Overview } from '@/routes/overview'
-import { Filings } from '@/routes/filings'
-import { FilingLayout } from '@/routes/filing-layout'
-import { FilingOverview } from '@/routes/filing-overview'
-import { FilingGraph } from '@/routes/filing-graph'
-import { FilingQA } from '@/routes/filing-qa'
-import { FilingTables } from '@/routes/filing-tables'
-import { Settings } from '@/routes/settings'
+import { Overview } from '@/routes/dashboard/overview-page'
+import { Landing } from '@/routes/landing/landing-page'
+import { Filings } from '@/routes/filings/filings-page'
+import { FilingLayout } from '@/routes/filings/detail/filing-layout'
+import { FilingOverview } from '@/routes/filings/detail/filing-overview-page'
+import { FilingGraph } from '@/routes/filings/detail/filing-graph-page'
+import { FilingQA } from '@/routes/filings/detail/filing-qa-page'
+import { FilingTables } from '@/routes/filings/detail/filing-tables-page'
+import { Settings } from '@/routes/settings/settings-page'
 
 function Shell() {
   const { documents, health } = useSession()
@@ -26,21 +27,24 @@ function Shell() {
   )
 
   return (
-    <SidebarInset className="min-w-0">
-      <StatusBar
-        left={
-          <span className="flex items-center gap-3">
-            <SidebarTrigger className="-ml-1 size-7" />
-            {plural(documents.length, 'filing')} indexed
-          </span>
-        }
-        right={right}
-      />
-      <main className="mx-auto w-full max-w-6xl p-5 lg:p-10">
-        <AppBreadcrumbs />
-        <Outlet />
-      </main>
-    </SidebarInset>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset className="min-w-0">
+        <StatusBar
+          left={
+            <span className="flex items-center gap-3">
+              <SidebarTrigger className="-ml-1 size-7" />
+              {plural(documents.length, 'filing')} indexed
+            </span>
+          }
+          right={right}
+        />
+        <main className="mx-auto w-full max-w-6xl p-5 lg:p-10">
+          <AppBreadcrumbs />
+          <Outlet />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
 
@@ -50,23 +54,21 @@ export function App() {
       <SessionProvider>
         <BrowserRouter>
           <TooltipProvider>
-            <SidebarProvider>
-              <AppSidebar />
-              <Routes>
-                <Route element={<Shell />}>
-                  <Route path="/" element={<Overview />} />
-                  <Route path="/filings" element={<Filings />} />
-                  <Route path="/filings/:id" element={<FilingLayout />}>
-                    <Route index element={<FilingOverview />} />
-                    <Route path="graph" element={<FilingGraph />} />
-                    <Route path="qa" element={<FilingQA />} />
-                    <Route path="tables" element={<FilingTables />} />
-                  </Route>
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route element={<Shell />}>
+                <Route path="/dashboard" element={<Overview />} />
+                <Route path="/filings" element={<Filings />} />
+                <Route path="/filings/:id" element={<FilingLayout />}>
+                  <Route index element={<FilingOverview />} />
+                  <Route path="graph" element={<FilingGraph />} />
+                  <Route path="qa" element={<FilingQA />} />
+                  <Route path="tables" element={<FilingTables />} />
                 </Route>
-              </Routes>
-            </SidebarProvider>
+                <Route path="/settings" element={<Settings />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Route>
+            </Routes>
           </TooltipProvider>
         </BrowserRouter>
       </SessionProvider>

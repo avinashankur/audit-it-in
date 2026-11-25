@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { PageHeader } from '@/components/app/page-header'
-import { ModeToggleGroup } from '@/components/mode-toggle'
+import { ModeToggle } from '@/components/app/mode-toggle'
 import { useSession } from '@/state/session'
 import { formatCount } from '@/lib/format'
 import type { UserSettings } from '@/types'
@@ -88,7 +88,7 @@ export function Settings() {
 
       <div className="border-t border-foreground">
         <Row title="Theme" description="Follows your system by default.">
-          <ModeToggleGroup />
+          <ModeToggle />
         </Row>
 
         <Row

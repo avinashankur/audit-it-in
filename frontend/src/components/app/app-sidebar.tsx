@@ -56,7 +56,7 @@ export function AppSidebar() {
         <SidebarGroup className="p-0 pt-11">
           <SidebarGroupLabel className="sr-only">Workspace</SidebarGroupLabel>
           <SidebarMenu className="gap-0.5">
-            <NavItem to="/" end>
+            <NavItem to="/dashboard" end>
               Overview
             </NavItem>
             <NavItem to="/filings">Filings</NavItem>

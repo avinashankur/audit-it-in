@@ -25,7 +25,7 @@ export function AppBreadcrumbs() {
   const { pathname } = useLocation()
   const { documents } = useSession()
 
-  if (pathname === '/') return null
+  if (pathname === '/' || pathname === '/dashboard') return null
 
   const segments = pathname.split('/').filter(Boolean)
   const match = pathname.match(/^\/filings\/([^/]+)/)
@@ -33,7 +33,7 @@ export function AppBreadcrumbs() {
   const filing = id ? documents.find((d) => d.document_id === id) : undefined
   const section = segments[0] === 'filings' && id ? segments[2] : undefined
   const sectionLabel = section ? SECTION_LABELS[section] : undefined
-  const crumbs: Crumb[] = [{ label: 'Overview', to: '/' }]
+  const crumbs: Crumb[] = [{ label: 'Overview', to: '/dashboard' }]
 
   if (segments[0] === 'filings') {
     crumbs.push({ label: 'Filings', to: '/filings' })
