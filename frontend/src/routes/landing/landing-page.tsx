@@ -21,7 +21,7 @@ export function Landing() {
       <div className="flex min-h-dvh flex-col p-2 sm:p-2.5">
         <section
           aria-label="Hero"
-          className="bg-landing-hero relative flex w-full flex-1 flex-col justify-between overflow-hidden rounded-3xl px-5 py-5 text-landing-foreground sm:px-8 sm:py-6 md:px-10 md:py-7"
+          className="bg-landing-hero relative flex w-full flex-1 flex-col justify-between overflow-hidden rounded-3xl px-5 py-5 text-landing-foreground sm:px-8 sm:py-6 md:px-10 md:py-7 min-h-screen"
         >
           <header className="relative z-10 flex items-center justify-between">
             <Link
