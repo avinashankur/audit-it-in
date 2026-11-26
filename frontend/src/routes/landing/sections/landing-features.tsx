@@ -1,12 +1,18 @@
-import { CheckCircle2, FileText, GitBranch, Search, ShieldCheck } from 'lucide-react'
-import { FeatureCard } from '@/components/app/feature-card'
-import { Caption, Heading, Lead, Title } from '@/components/app/typography'
+import {
+  CheckCircle2,
+  FileText,
+  GitBranch,
+  Search,
+  ShieldCheck,
+} from "lucide-react";
+import { FeatureCard } from "@/components/app/feature-card";
+import { Caption, Heading, Lead, Title } from "@/components/app/typography";
 
 const METRIC_TILES = [
-  { label: 'Nodes', value: '48' },
-  { label: 'Edges', value: '112' },
-  { label: 'Tables', value: '14' },
-] as const
+  { label: "Nodes", value: "48" },
+  { label: "Edges", value: "112" },
+  { label: "Tables", value: "14" },
+] as const;
 
 export function LandingFeatures() {
   return (
@@ -22,7 +28,8 @@ export function LandingFeatures() {
             for your audit.
           </Title>
           <Lead className="mt-4 max-w-md text-landing-ink-muted">
-            Explore the tools built to trace financial numbers, inspect statements, and verify every disclosure.
+            Explore the tools built to trace financial numbers, inspect
+            statements, and verify every disclosure.
           </Lead>
         </div>
 
@@ -40,14 +47,19 @@ export function LandingFeatures() {
               <div className="relative z-10 w-full rounded-2xl border border-landing-canvas-border bg-landing-card-inner px-4 py-3.5 text-left shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="inline-flex items-center gap-2 text-sm font-medium text-landing-ink">
-                    <CheckCircle2 className="size-4 text-landing-accent" aria-hidden="true" />
+                    <CheckCircle2
+                      className="size-4 text-landing-accent"
+                      aria-hidden="true"
+                    />
                     Operating Cash Flow
                   </span>
                   <span className="shadow-landing-sunken rounded-md px-2 py-0.5 text-xs text-landing-ink-muted">
                     Page 42
                   </span>
                 </div>
-                <p className="mt-1 pl-6 text-xs text-landing-ink-muted">Causal Node</p>
+                <p className="mt-1 pl-6 text-xs text-landing-ink-muted">
+                  Causal Node
+                </p>
                 <div className="mt-2.5 pl-6">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-landing-accent-soft px-2.5 py-0.5 text-xs font-medium text-landing-accent">
                     High Impact
@@ -64,7 +76,9 @@ export function LandingFeatures() {
             </div>
 
             <div className="mt-2">
-              <Heading className="text-landing-ink">Causal Knowledge Graph</Heading>
+              <Heading className="text-landing-ink">
+                Causal Knowledge Graph
+              </Heading>
               <p className="mt-1 text-xs leading-relaxed text-landing-ink-muted sm:text-sm">
                 Trace upstream and downstream drivers across every filing.
               </p>
@@ -72,75 +86,15 @@ export function LandingFeatures() {
           </FeatureCard>
 
           {/* Card 2: Mini inspector frame + floating callout pill */}
-          <FeatureCard className="items-center text-center">
-            <div className="relative flex w-full max-w-xs items-center justify-center py-6">
-              <div className="w-56 rounded-2xl border border-landing-canvas-border bg-landing-card-inner p-3.5 text-left shadow-sm">
-                <div className="flex items-center justify-between border-b border-landing-canvas-border pb-2">
-                  <span className="text-xs font-medium text-landing-ink">10-K Overview</span>
-                  <span className="text-xs text-landing-ink-muted">FY25</span>
-                </div>
-                <div className="mt-3 grid grid-cols-3 gap-1.5 text-center">
-                  <div className="shadow-landing-sunken rounded-xl py-2">
-                    <p className="text-xs font-semibold text-landing-ink">48</p>
-                    <p className="text-xs text-landing-ink-muted">Nodes</p>
-                  </div>
-                  <div className="shadow-landing-sunken rounded-xl py-2">
-                    <p className="text-xs font-semibold text-landing-ink">14</p>
-                    <p className="text-xs text-landing-ink-muted">Tables</p>
-                  </div>
-                  <div className="shadow-landing-sunken rounded-xl py-2">
-                    <p className="text-xs font-semibold text-landing-ink">3</p>
-                    <p className="text-xs text-landing-ink-muted">Hops</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="shadow-landing-raised absolute top-10 -right-2 flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5 text-left sm:right-0">
-                <span className="flex size-7 items-center justify-center rounded-full bg-landing-accent-soft text-landing-accent">
-                  <GitBranch className="size-3.5" aria-hidden="true" />
-                </span>
-                <div>
-                  <p className="text-xs text-landing-ink-muted">Graph Depth</p>
-                  <p className="font-mono text-sm font-semibold text-landing-ink">3 Hops</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-2">
+          <FeatureCard className="items-center justify-end text-center bg-[url('/graph.png')]! bg-cover! bg-center! bg-no-repeat!">
+            <div className="">
               <Heading className="text-landing-ink">Dependency Tracing</Heading>
-              <p className="mt-1 text-xs leading-relaxed text-landing-ink-muted sm:text-sm">
-                Follow cause-to-effect links across statements and footnotes.
-              </p>
             </div>
           </FeatureCard>
 
           {/* Card 3: Mini Q&A frame + floating citation pill */}
-          <FeatureCard className="items-center text-center">
-            <div className="relative flex w-full max-w-xs items-center justify-center py-6">
-              <div className="w-56 rounded-2xl border border-landing-canvas-border bg-landing-card-inner p-3.5 text-left shadow-sm">
-                <div className="flex items-center gap-2 border-b border-landing-canvas-border pb-2">
-                  <Search className="size-3.5 text-landing-accent" aria-hidden="true" />
-                  <span className="text-xs font-medium text-landing-ink">Disclosure Q&amp;A</span>
-                </div>
-                <div className="mt-2.5 space-y-2">
-                  <div className="shadow-landing-sunken rounded-xl px-2.5 py-2">
-                    <p className="text-xs font-medium text-landing-ink">Net Debt Drivers</p>
-                    <p className="text-xs text-landing-ink-muted">Grounded answer</p>
-                  </div>
-                  <div className="shadow-landing-sunken rounded-xl px-2.5 py-2">
-                    <p className="text-xs font-medium text-landing-ink">Margin Expansion</p>
-                    <p className="text-xs text-landing-ink-muted">Verified source</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="shadow-landing-raised absolute top-10 -right-2 flex items-center gap-2 rounded-full px-3 py-1.5 sm:right-0">
-                <FileText className="size-3.5 text-landing-accent" aria-hidden="true" />
-                <span className="font-mono text-xs font-medium text-landing-ink">Page 42</span>
-              </div>
-            </div>
-
-            <div className="mt-2">
+          <FeatureCard className="relative items-center justify-end text-center bg-[url('/image.png')]! bg-cover! bg-center! bg-no-repeat!">
+            <div className="mt-2 dark:bg-neutral-800/30 bg-white rounded-2xl px-8 py-2 backdrop-blur-md">
               <Heading className="text-landing-ink">Cited Q&amp;A</Heading>
               <p className="mt-1 text-xs leading-relaxed text-landing-ink-muted sm:text-sm">
                 Ask questions and verify every answer with page-level sources.
@@ -158,14 +112,21 @@ export function LandingFeatures() {
                   </span>
                   <div>
                     <Caption className="text-landing-ink-muted">Engine</Caption>
-                    <p className="text-sm font-medium text-landing-ink">Offline Grounded</p>
+                    <p className="text-sm font-medium text-landing-ink">
+                      Offline Grounded
+                    </p>
                   </div>
                 </div>
 
                 <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                   {METRIC_TILES.map((tile) => (
-                    <div key={tile.label} className="shadow-landing-sunken rounded-xl px-2 py-2.5">
-                      <p className="text-xs text-landing-ink-muted">{tile.label}</p>
+                    <div
+                      key={tile.label}
+                      className="shadow-landing-sunken rounded-xl px-2 py-2.5"
+                    >
+                      <p className="text-xs text-landing-ink-muted">
+                        {tile.label}
+                      </p>
                       <p className="mt-0.5 font-mono text-base font-semibold text-landing-ink">
                         {tile.value}
                       </p>
@@ -176,7 +137,9 @@ export function LandingFeatures() {
             </div>
 
             <div className="mt-2">
-              <Heading className="text-landing-ink">Local &amp; Private</Heading>
+              <Heading className="text-landing-ink">
+                Local &amp; Private
+              </Heading>
               <p className="mt-1 text-xs leading-relaxed text-landing-ink-muted sm:text-sm">
                 Run fully offline with zero API keys, or bring your own model.
               </p>
@@ -185,5 +148,5 @@ export function LandingFeatures() {
         </div>
       </div>
     </section>
-  )
+  );
 }
