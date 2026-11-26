@@ -1,8 +1,5 @@
 import {
   CheckCircle2,
-  FileText,
-  GitBranch,
-  Search,
   ShieldCheck,
 } from "lucide-react";
 import { FeatureCard } from "@/components/app/feature-card";
