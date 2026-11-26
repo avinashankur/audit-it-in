@@ -168,9 +168,6 @@ export function Filings() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <PageHeading>Filings</PageHeading>
-          <p className="mt-1 text-xs text-landing-ink-muted">
-            Every document the engine has read in this session, and what it found inside.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
