@@ -10,6 +10,7 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/state/session'
@@ -25,11 +26,14 @@ function NavItem({
   icon: LucideIcon
   children: React.ReactNode
 }) {
+  const { isMobile, setOpenMobile } = useSidebar()
+
   return (
     <SidebarMenuItem>
       <NavLink
         to={to}
         end={end}
+        onClick={() => isMobile && setOpenMobile(false)}
         className={({ isActive }) =>
           cn(
             'flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-medium transition-all',
@@ -58,6 +62,7 @@ function NavItem({
 
 export function AppSidebar() {
   const { health } = useSession()
+  const { isMobile, setOpenMobile } = useSidebar()
 
   const checks = [
     { label: 'Engine', value: health ? 'Ready' : 'Offline' },
@@ -74,6 +79,7 @@ export function AppSidebar() {
       <SidebarHeader className="px-3 pt-5 pb-3 md:px-1">
         <Link
           to="/"
+          onClick={() => isMobile && setOpenMobile(false)}
           className="inline-flex w-fit items-center gap-2 rounded-lg px-2 py-1 text-landing-ink transition-opacity hover:opacity-80"
         >
           <img
